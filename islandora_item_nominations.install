@@ -1,0 +1,51 @@
+<?php
+
+/**
+ * @file database schema.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+
+function islandora_item_nominations_schema() {
+  $schema['islandora_content_stats'] = array(
+    'description' => 'Table of nominated items, to appear in various contexts.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'unsigned' => true,
+        'not_null' => true,
+      ),
+      'pid' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'description' => 'islandora/fedora pid',
+      ),
+      'dsid' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'description' => 'datastream id(JPEG, TN)',
+      ),
+      'context_id' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'description' => 'unique id for the context, a pid',
+      ),
+      'context_type' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'description' => 'collection, cpd, or namespace',
+      ),
+      'front' => array(
+        'type' => 'int',
+        'length' => 'tiny',
+        'unsigned' => true,
+        'not_null' => true,
+        'default' => true,
+        'description' => 'should this be stored in the pool of potentials item for display on the <front> page',
+      ),
+    ),
+  );
+  return $schema;
+}
