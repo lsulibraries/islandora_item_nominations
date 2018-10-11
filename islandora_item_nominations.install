@@ -25,17 +25,17 @@ function islandora_item_nominations_schema() {
       'dsid' => array(
         'type' => 'varchar',
         'length' => 255,
-        'description' => 'datastream id(JPEG, TN)',
+        'description' => 'datastream id(JPEG, TN) used as key image',
       ),
       'context_id' => array(
         'type' => 'varchar',
         'length' => 255,
-        'description' => 'unique id for the context, a pid',
+        'description' => 'unique id for the context, a pid or namespace prefix',
       ),
       'context_type' => array(
         'type' => 'varchar',
         'length' => 255,
-        'description' => 'collection, cpd, or namespace',
+        'description' => 'collection, cpd, or namespace prefix',
       ),
       'front' => array(
         'type' => 'int',
@@ -43,7 +43,7 @@ function islandora_item_nominations_schema() {
         'unsigned' => true,
         'not_null' => true,
         'default' => true,
-        'description' => 'should this be stored in the pool of potentials item for display on the <front> page',
+        'description' => 'should this be stored in the front-page pool of potentials item for display on the <front> page',
       ),
     ),
   );

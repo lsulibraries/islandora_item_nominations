@@ -11,7 +11,7 @@
 function islandora_item_nominations_menu() {
   $items = array();
   $items['admin/islandora/tools/nominations/front'] = array(
-    'title' => 'Front page image pool',
+    'title' => 'Front-page image pool',
     'description' => 'Choose which items to include on the front page rotation',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('islandora_item_nominations_front_form'),
@@ -19,4 +19,105 @@ function islandora_item_nominations_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
   return $items;
+}
+
+/**
+ * Implements hook_form_FORM_ID_menu().
+ * Manage properties...
+ */
+function islandora_item_nominations_islandora_object_porperties_form_alter($form, &$form_state) {
+  $object = $form_state['object'];
+  dpm($object->models);
+  dpm('manage object nomination');
+  foreach ($object->models as $model) {
+    if ($model == 'islandora_sp_large_image'){
+      //allow nomination.
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_menu().
+ * Manage Collection nominations
+ */
+function islandora_item_nominations_islandora_basic_collection_islandora_basic_collection_build_manage_object($form, &$form_state) {
+  dpm('manage collection nominations');
+}
+
+/**
+ * Implements hook_form_FORM_ID_menu().
+ * Manage namespace homepage
+ */
+function islandora_item_nominations_admin_form_alter($form, &$form_state) {
+  dpm($form_state);
+  dpm('namespace admin form nominations');
+}
+
+/**
+ * Return the key image for a given context.
+ *
+ * @param string $context
+ *   Context id, collection pid, cpd pid, or namespace prefix.
+ *
+ * @return array $pid_and_dsid
+ *   Object pid, and which datastream to use.
+ */
+function islandora_item_nominations_get_key_image($context) {
+  //query db for given context.
+  //add conditional to check for ns_homepage.
+  $pid_and_dsid = array('pid', 'dsid');
+  return $pid_and_dsid;
+}
+
+/**
+ * Return the key image for a given context.
+ *
+ * @return array $pool
+ *   Set of db records, images available for frontpage
+ */
+ function islandora_item_nominations_get_frontpage_pool() {
+  //'SELECET * WHERE front = 1 from islandora_item_nominations'
+  $pool = array('pid','dsid to load');
+  return $pool;
+}
+
+/**
+ * Called when a new item is chosen for the given context.
+ *
+ * @param string $pid
+ *   Object pid of new object.
+ * @param string $context
+ *   Context id, collection pid, cpd pid, or namespace prefix.
+ *
+ * @return array $pid_and_dsid
+ */
+function islandora_item_nominations_unset_key($pid, $context) {
+  //set some field to NULL (see readme line 57).
+}
+
+/**
+ * Update db record for a pid setting value for a context.
+ *
+ * @param string $pid
+ *   Object pid of new object.
+ * @param string $context
+ *   Context id, collection pid, cpd pid, or namespace prefix.
+ * @param string $context_id
+ *   Context id, collection pid, cpd pid, or namespace prefix.
+ *
+ * @return array $pid_and_dsid
+ *   Object pid, and which datastream to use.
+ */
+function islandora_item_nominations_set_key($pid, $context, $context_id) {
+  //
+}
+
+function islandora_item_nominations_get_image_metadata($pid) {
+  return array(
+    'title' => $title,
+    'description' => $description,
+    'creator' => $creator,
+    'date_created' => $date_created,
+    'cmodel' => $cmodel
+  );
 }

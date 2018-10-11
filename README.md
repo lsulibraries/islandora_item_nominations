@@ -69,8 +69,8 @@ The following functions and return values will be needed:
     * `return [$title, $description, $creator, $date_created, $cmodel]`
 
 ### Forms
-* item-level nominate checkbox
-* context-level select list for setting key item
+* item-level nominate checkbox (hook item properties form)
+* context-level select list for setting key item (hook other forms)
 * front-page pool management form
 
 ## * for consideration
