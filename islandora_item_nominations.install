@@ -9,7 +9,7 @@
  */
 
 function islandora_item_nominations_schema() {
-  $schema['islandora_content_stats'] = array(
+  $schema['islandora_item_nominations'] = array(
     'description' => 'Table of nominated items, to appear in various contexts.',
     'fields' => array(
       'id' => array(
@@ -46,6 +46,7 @@ function islandora_item_nominations_schema() {
         'description' => 'should this be stored in the front-page pool of potentials item for display on the <front> page',
       ),
     ),
+    'primary key' => array('id'),
   );
   return $schema;
 }

@@ -1,0 +1,6 @@
+name = "Islandora Item Nominations"
+description = "Gives administrators ability to nominate featured items."
+package = Islandora Tools
+dependencies[] = islandora
+version = 7.x-dev
+core = 7.x

@@ -25,32 +25,64 @@ function islandora_item_nominations_menu() {
  * Implements hook_form_FORM_ID_menu().
  * Manage properties...
  */
-function islandora_item_nominations_islandora_object_porperties_form_alter($form, &$form_state) {
+function islandora_item_nominations_form_islandora_object_properties_form_alter(&$form, &$form_state) {
+  module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
   $object = $form_state['object'];
-  dpm($object->models);
-  dpm('manage object nomination');
-  foreach ($object->models as $model) {
-    if ($model == 'islandora_sp_large_image'){
-      //allow nomination.
+  if ($form['pid']['#value'] == 'islandora:sp_remote_resource_collection') {
+    return;
+  }
+  $checkbox = array(
+    '#type' => 'checkbox',
+    '#title' => t('Nominate as featured item of collection'),
+    '#description' => t('Adds either the JPG or TN (prefers JPG) for this object to a pool of featured items'),
+    '#default_value' => is_nominated($form['pid']['#value']) ? TRUE : FALSE,
+  );
+  $dsid = '';
+  foreach ($object as $datastream) {
+    if ($datastream->id == 'JPG') {
+      $form['nominate'] = $checkbox;
+    }
+    elseif ($datastream->id == 'TN'){
+      $form['nominate'] = $checkbox;
     }
   }
+  array_unshift($form['#submit'], 'islandora_item_nominations_submit_handler');
+return $form;
 }
 
+
 /**
- * Implements hook_form_FORM_ID_menu().
+ * Implements hook_ somehow...
+ * //this one is not  working, it's a unique islandora hook, not sure how to get it here.
+ *
  * Manage Collection nominations
  */
-function islandora_item_nominations_islandora_basic_collection_islandora_basic_collection_build_manage_object($form, &$form_state) {
+function islandora_item_nominations_islandora_basic_collection_menu($form_state, $object) {
+//  $whatis = module_invoke('islandora_collectionCModel_islandora_overview_object');
+  //dpm($whatis);
   dpm('manage collection nominations');
 }
 
 /**
- * Implements hook_form_FORM_ID_menu().
+ * Implements hook_form_FORM_ID().
  * Manage namespace homepage
  */
-function islandora_item_nominations_admin_form_alter($form, &$form_state) {
-  dpm($form_state);
-  dpm('namespace admin form nominations');
+function islandora_item_nominations_form_admin_form_alter(&$form, &$form_state) {
+  // db_call for $nominated items w/in an institution
+  $objects  = FALSE ? FALSE : array();
+  // foreach ($nominated as $pid) {
+  //   $object = islandora_object_load($pid);
+  //   $options[] = $object->label;
+  // }
+  //use form_state???
+  $form['nominations'] = array(
+    '#type' => 'tableselect',
+    '#title' => t('Choose a nominated item as background image'),
+    '#header' => array(t('Object')),
+    '#options' => $objects, //object array
+    '#empty' => t('No items have been nominated'),
+    );
+  return $form;
 }
 
 /**
@@ -113,6 +145,8 @@ function islandora_item_nominations_set_key($pid, $context, $context_id) {
 }
 
 function islandora_item_nominations_get_image_metadata($pid) {
+  $obj = islandora_object_load($pid);
+  $mods = simplexml_load_string($obj['MODS']);
   return array(
     'title' => $title,
     'description' => $description,
