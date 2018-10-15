@@ -7,7 +7,6 @@
 /**
  * Implements hook_menu().
  */
-
 function islandora_item_nominations_menu() {
   $items = array();
   $items['admin/islandora/tools/nominations'] = array(
@@ -43,7 +42,7 @@ function islandora_item_nominations_form_islandora_object_properties_form_alter(
     if ($datastream->id == 'JPG') {
       $form['nominate'] = $checkbox;
     }
-    elseif ($datastream->id == 'TN'){
+    else {
       $form['nominate'] = $checkbox;
     }
   }
@@ -51,17 +50,20 @@ function islandora_item_nominations_form_islandora_object_properties_form_alter(
 return $form;
 }
 
-
 /**
- * Implements hook_ somehow...
- * //this one is not  working, it's a unique islandora hook, not sure how to get it here.
- *
- * Manage Collection nominations
+ * Implements hook_islandora_basic_collection_build_manage_object.
  */
-function islandora_item_nominations_islandora_basic_collection_menu($form_state, $object) {
-//  $whatis = module_invoke('islandora_collectionCModel_islandora_overview_object');
-  //dpm($whatis);
-  dpm('manage collection nominations');
+function islandora_item_nominations_islandora_basic_collection_build_manage_object($form_state, $object) {
+  module_load_include('inc', 'islandora_item_nominations', 'includes/collection.form');
+  $form_state['manage_collection_object']['nominate'] = array(
+    '#id' => 'nominate-children',
+    '#group' => 'manage_collection_object',
+    '#access' => TRUE,
+    '#type' => 'fieldset',
+    '#title' => t('Nominated members in this collection'),
+    'form' => drupal_get_form('islandora_item_nominations_collection_form', $object),
+  );
+  return $form_state;
 }
 
 /**
@@ -69,21 +71,52 @@ function islandora_item_nominations_islandora_basic_collection_menu($form_state,
  * Manage namespace homepage
  */
 function islandora_item_nominations_form_admin_form_alter(&$form, &$form_state) {
-  // db_call for $nominated items w/in an institution
-  $objects  = FALSE ? FALSE : array();
-  // foreach ($nominated as $pid) {
-  //   $object = islandora_object_load($pid);
-  //   $options[] = $object->label;
-  // }
-  //use form_state???
-  $form['nominations'] = array(
+  $params = current_path();
+  $namespace = explode('/', $params);
+  $ns = $namespace[0] . '-';
+  $results = db_select('islandora_item_nominations', 'n')
+    ->fields('n')
+    ->condition('pid', $ns.'%', 'LIKE')
+    ->execute()
+    ->fetchAll();
+  $options = array();
+  foreach ($results as $result) {
+    $options[$result->id] = (array) $result;
+    $options[$result->id]['pid'] = l($result->pid, 'islandora/object/' . $result->pid);
+  }
+  $form['front'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Choose items, to give namespace specific context'),
+  );
+  $headers = array(
+    'pid' => array('data' => t('Item pid'), 'field' => 'n.pid'),
+    'dsid' => array('data' => t('Datastream'), 'field' => 'n.dsid'),
+    'context_id' => array('data' => t('Context Id (pid or namespace)'), 'field' => 'n.context_id'),
+    'context_type' => array('data' => t('Type of Context'), 'field' => 'n.context_type'),
+    'front' => array('data' => t('Show on frontpage'), 'field' => 'n.front'),
+  );
+  $form['table'] = array(
     '#type' => 'tableselect',
-    '#title' => t('Choose a nominated item as background image'),
-    '#header' => array(t('Object')),
-    '#options' => $objects, //object array
-    '#empty' => t('No items have been nominated'),
-    );
+    '#title' => t('Available items Pool'),
+    '#description' => t('Choose items to be featured on the institution/sub-institution homepage.'),
+    '#header' => $headers,
+    '#options' => $options,
+    '#empty' => t('No items added yet, to nominate visit islandora/object/%object:pid%/manage/properties'),
+  );
+  array_unshift($form['#submit'], 'islandora_namespace_context_add');
   return $form;
+}
+
+function islandora_namespace_context_add(&$form, &$form_state){
+  foreach ($form_state['input']['table'] as $id) {
+    db_update('islandora_item_nominations')
+      ->condition('id',$id)
+      ->fields(array(
+        'context_type' => 'namespace',
+        'context_id' => $form['ns']['#value']. '-'
+      ))
+      ->execute();
+  }
 }
 
 /**
