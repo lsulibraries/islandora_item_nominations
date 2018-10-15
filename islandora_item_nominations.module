@@ -23,7 +23,6 @@ function islandora_item_nominations_menu() {
 
 /**
  * Implements hook_form_FORM_ID_menu().
- * Manage properties...
  */
 function islandora_item_nominations_form_islandora_object_properties_form_alter(&$form, &$form_state) {
   module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
@@ -129,7 +128,14 @@ function islandora_namespace_context_add(&$form, &$form_state){
  *   Object pid, and which datastream to use.
  */
 function islandora_item_nominations_get_key_image($context) {
-  //query db for given context.
+  $qargs = [':context' => $context];
+  $qtext = "SELECT * FROM islandora_item_nominations WHERE context_type = :context";
+  $potential_key = db_query($qtext, $qargs);
+    if ($potential_key->rowCount() >= 1) {
+    $potential_key->fetchAll();
+    $which = rand(0, $potential_key->rowCount());
+  }
+  dpm($potential_key->rowCount());
   //add conditional to check for ns_homepage.
   $pid_and_dsid = array('pid', 'dsid');
   return $pid_and_dsid;
@@ -142,9 +148,15 @@ function islandora_item_nominations_get_key_image($context) {
  *   Set of db records, images available for frontpage
  */
  function islandora_item_nominations_get_frontpage_pool() {
-  //'SELECET * WHERE front = 1 from islandora_item_nominations'
-  $pool = array('pid','dsid to load');
-  return $pool;
+  $potential_keys = db_query('SELECT * FROM islandora_item_nominations WHERE front = 1');
+  $count = $potential_keys->rowCount();
+  $which = rand(1, $potential_keys->rowCount());
+  $pool = $potential_keys->fetchAll();
+  $pid = $pool[$which]->pid;
+  $dsid = $pool[$which]->dsid;
+  $obj = islandora_object_load($pid);
+  $image = $obj[$dsid];
+  $image->getContent('/tmp/image.file');
 }
 
 /**
@@ -159,6 +171,7 @@ function islandora_item_nominations_get_key_image($context) {
  */
 function islandora_item_nominations_unset_key($pid, $context) {
   //set some field to NULL (see readme line 57).
+  $meta = islandora_item_nominations_get_image_metadata($pid);
 }
 
 /**
@@ -189,3 +202,34 @@ function islandora_item_nominations_get_image_metadata($pid) {
     'cmodel' => $cmodel
   );
 }
+
+function where_ami() {
+  if (current_path() == '') {
+    dpm('<front>ish');
+    islandora_item_nominations_get_frontpage_pool();
+    //islandora_item_nominations_get_key_image('front');
+  }
+  if (current_path() == 'lsu') {
+    //need namespace list
+    dpm('namespace');
+    islandora_item_nominations_get_key_image('lsu-');
+  }
+  if (current_path() == 'islandora/object/islandora:root') {
+    dpm('root');
+    // foreach ($collection_grid_member as $collection) {
+    //   islandora_item_nominations_get_key_image($collection_pid);
+    // }
+    //load up each collection in the grid's key image
+  }
+  if (preg_match('%islandora/object/(.*):collection%', current_path())) {
+    if(!preg_match('%collection/%', current_path())){
+      dpm('collection');
+      $path = explode('/', current_path());
+      $path[2];
+      islandora_item_nominations_get_key_image($path[2]);
+    }
+  }
+
+}
+
+where_ami();
