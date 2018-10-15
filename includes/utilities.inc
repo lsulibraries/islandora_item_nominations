@@ -18,12 +18,12 @@ function is_nominated($pid) {
     ->condition('pid', $pid)
     ->execute();
     $nominated = $records->rowCount();
-    return $nominated > 0;
+    return $nominated >= 1;
 }
 
 /**
  *
- * Adds given pid to db.
+ * Adds given pid with dsid to db.
  *
  * @param string $pid
  *   Object pid.
@@ -31,11 +31,8 @@ function is_nominated($pid) {
  *   Prefered datastream id (JPG or TN if no JPG)
  */
 function nominate($pid, $dsid) {
-  $check = db_select('islandora_item_nominations','n')
-    ->fields('n')
-    ->condition('pid', $pid)
-    ->execute();
-    if($check->rowCount() >= 1){
+  $check = is_nominated($pid);
+    if ($check) {
       return; //already nominated
     }
     else {

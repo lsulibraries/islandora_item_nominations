@@ -10,11 +10,12 @@
 
 function islandora_item_nominations_menu() {
   $items = array();
-  $items['admin/islandora/tools/nominations/front'] = array(
-    'title' => 'Front-page image pool',
-    'description' => 'Choose which items to include on the front page rotation',
+  $items['admin/islandora/tools/nominations'] = array(
+    'title' => t('Front-page image pool'),
+    'description' => t('Choose which items to include on the front page rotation'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('islandora_item_nominations_front_form'),
+    'access arguments' => array('Administrate front page image pool'),
     'file' => 'includes/front.form.inc',
     'type' => MENU_NORMAL_ITEM,
   );
