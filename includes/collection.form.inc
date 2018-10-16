@@ -56,5 +56,6 @@ function islandora_item_nominations_collection_form_submit(&$form, &$form_state)
     );
     $id_condition = array('id' => $id);
     context_update($pid, $fields, $id_condition);
+    update_collection_ds($fields['context_id']);
   }
 }

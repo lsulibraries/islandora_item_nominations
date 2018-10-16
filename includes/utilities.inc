@@ -94,6 +94,24 @@ function context_update($pid, $fields, $id_condition = FALSE) {
   }
 }
 
+function update_collection_ds($coll_pid) {
+  $coll_ns = explode(':', $coll_pid);
+  $coll_ns = $coll_ns[0];
+  $results = db_select('islandora_item_nominations', 'n')
+    ->fields('n')
+    ->condition('pid', $coll_ns.'%', 'LIKE')
+    ->condition('context_id', $coll_pid)
+    ->execute()
+    ->fetchAll();
+    foreach($results as $result) {
+      $object = islandora_object_load($result->pid);
+      $ds = $object[$result->dsid]->content;
+      $coll_obj = islandora_object_load($coll_pid);
+      $TN = $coll_obj['TN'];
+      $TN->setContentFromString($ds);
+    }
+
+}
 
 /**
  * Loads image metadata.
