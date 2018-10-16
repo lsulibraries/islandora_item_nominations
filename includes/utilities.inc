@@ -100,3 +100,33 @@ function add_context($pid, $context_id, $context_type) {
     ->execute();
     dsm("Context added, $context_type set to $context_id for $pid");
 }
+
+/**
+ * Maps a machine name to a human readable $label
+ * @param string $model
+ *  String of model's machine name
+ * @return string
+ *  String of model's label stripped of repetitous words
+ *
+ *  Borrowed from islandora_content_stats
+ */
+function nominations_map_cmodels($model) {
+  module_load_include('inc','islandora','includes/utilities');
+    if($model == 'children of compound object types'){return $model;}
+    module_load_include('inc', 'islandora', 'includes/utilities');
+    $not_cmobj = $model != 'fedora-system:ContentModel-3.0';
+    $not_fobj = $model != 'fedora-system:FedoraObject-3.0';
+    if (($not_fobj) && ($not_cmobj)) {
+        $cmodel_map = islandora_content_stats_islandora_get_content_models();
+        if ($model != '' && array_key_exists($model, $cmodel_map)) {
+            $label = $cmodel_map[$model];
+            $replace = $label['label'];
+            $l_replace = str_replace('Large ', '', $replace);
+            $i_replace = str_replace('Islandora ', '', $l_replace);
+            $short_label = str_replace(' Content Model', '', $i_replace);
+            return $short_label;
+        }
+        return $model;
+    }
+    return $model;
+}
