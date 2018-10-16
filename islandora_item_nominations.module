@@ -50,6 +50,22 @@ return $form;
 }
 
 /**
+ * Submit handler to be added to islandora_object_properties_form.
+ *
+ * @return function $fn
+ * Returns either the nominate or denominate function.
+ */
+function islandora_item_nominations_submit_handler(&$form, &$form_state) {
+  $obj = $form_state['object'];
+  $dsid = jpg_over_tn($obj);
+  if ($form_state['input']['form_id'] == 'islandora_object_properties_form') {
+    $fn = $form_state['input']['nominate'] ? 'nominate' : 'denominate';
+    $return = $form_state['input']['nominate'] ? $fn($form_state['values']['pid'], $dsid): $fn($form_state['values']['pid']);
+    return $return;
+  }
+}
+
+/**
  * Implements hook_islandora_basic_collection_build_manage_object().
  */
 function islandora_item_nominations_islandora_basic_collection_build_manage_object($form_state, $object) {
@@ -82,14 +98,14 @@ function islandora_item_nominations_form_admin_form_alter(&$form, &$form_state) 
   $options = array();
   foreach ($results as $result) {
     $options[$result->id] = (array) $result;
-    $options[$result->id]['pid'] = l($result->pid, 'islandora/object/' . $result->pid);
+    $options[$result->id]['pid-link'] = l($result->pid, 'islandora/object/' . $result->pid);
   }
   $form['front'] = array(
     '#type' => 'fieldset',
     '#title' => t('Choose items, to give namespace specific context'),
   );
   $headers = array(
-    'pid' => array('data' => t('Item pid'), 'field' => 'n.pid'),
+    'pid-link' => array('data' => t('Item pid'), 'field' => 'n.pid'),
     'dsid' => array('data' => t('Datastream'), 'field' => 'n.dsid'),
     'context_id' => array('data' => t('Context Id (pid or namespace)'), 'field' => 'n.context_id'),
     'context_type' => array('data' => t('Type of Context'), 'field' => 'n.context_type'),
@@ -107,7 +123,16 @@ function islandora_item_nominations_form_admin_form_alter(&$form, &$form_state) 
   return $form;
 }
 
-
+function islandora_namespace_context_add(&$form, &$form_state){
+  module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
+  foreach ($form_state['input']['table'] as $id) {
+    $fields = array(
+      'context_type' => 'namespace',
+      'context_id' => $form['ns']['#value']. '-'
+    );
+    context_update($form_state['complete form']['table']['#options'][$id]['pid'], $fields);
+  }
+}
 
 /**
  * Return the key image for a given context.
