@@ -43,12 +43,15 @@ function islandora_item_nominations_front_form($form, &$form_state) {
   return $form;
 }
 
+/**
+ *  Toggles item availability in item pool for front-page.
+ */
 function islandora_item_nominations_front_form_submit(&$form, &$form_state) {
   foreach ($form_state['input']['table'] as $id) {
     db_update('islandora_item_nominations')
       ->condition('id',$id)
       ->fields(array(
-        'front' => (int)!(bool)$form_state['complete form']['table']['#options'][$id]['front']))
+        'front' => (int) !(bool) $form_state['complete form']['table']['#options'][$id]['front']))
       ->execute();
   }
 }

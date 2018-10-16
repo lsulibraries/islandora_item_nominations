@@ -43,6 +43,9 @@ $form['submit'] = array(
 return $form;
 }
 
+/**
+ *  Sets context and context_id, overwrites existing.
+ */
 function islandora_item_nominations_collection_form_submit(&$form, &$form_state) {
   foreach ($form_state['input']['table'] as $id) {
     db_update('islandora_item_nominations')

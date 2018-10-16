@@ -74,7 +74,7 @@ function jpg_over_tn($object) {
 }
 
 /**
- * Submit handler to be added islandora_object_properties_form.
+ * Submit handler to be added to islandora_object_properties_form.
  *
  * @return function $fn
  * Returns either the nominate or denominate function.
@@ -88,17 +88,48 @@ function islandora_item_nominations_submit_handler(&$form, &$form_state) {
     return $return;
   }
 }
+//
+// function add_context($pid, $context_id, $context_type) {
+//   db_insert('islandora_item_nominations')
+//     ->fields(array('context_id','context_type'))
+//     ->values(array(
+//       'contexnt_id' => $context_id,
+//       'context_type' => $context_type,
+//     ))
+//     ->condition('pid',$pid)
+//     ->execute();
+//     dsm("Context added, $context_type set to $context_id for $pid");
+// }
 
-function add_context($pid, $context_id, $context_type) {
-  db_insert('islandora_item_nominations')
-    ->fields(array('context_id','context_type'))
-    ->values(array(
-      'contexnt_id' => $context_id,
-      'context_type' => $context_type,
-    ))
-    ->condition('pid',$pid)
-    ->execute();
-    dsm("Context added, $context_type set to $context_id for $pid");
+//
+function islandora_namespace_context_add(&$form, &$form_state){
+  foreach ($form_state['input']['table'] as $id) {
+    db_update('islandora_item_nominations')
+      ->condition('id',$id)
+      ->fields(array(
+        'context_type' => 'namespace',
+        'context_id' => $form['ns']['#value']. '-'
+      ))
+      ->execute();
+  }
+}
+
+/**
+ * Loads image metadata.
+ *
+ *@param abstract $object
+ *  Preloaded object
+ */
+function get_image_metadata($object) {
+  module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
+  $mods = simplexml_load_string($object['MODS']->content);
+  return array(
+    'title' => property_exists($mods, 'titleInfo') ? (string) $mods->titleInfo->title : t('Title Info Title is missing'),
+    'description' => property_exists($mods, 'abstract') ? (string) $mods->abstract : t('Description missing'),
+    'creator' => property_exists($mods, 'creator') ? $mods->creator : t('Creator missing'),
+    'date_created' => property_exists($mods, 'date_created') ? $mods : t('Date created missing'),
+    'cmodel' => nominations_map_cmodels($object->models[0])
+  );
 }
 
 /**

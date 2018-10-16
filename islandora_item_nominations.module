@@ -22,7 +22,7 @@ function islandora_item_nominations_menu() {
 }
 
 /**
- * Implements hook_form_FORM_ID_menu().
+ * Implements hook_form_FORM_ID_alter().
  */
 function islandora_item_nominations_form_islandora_object_properties_form_alter(&$form, &$form_state) {
   module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
@@ -70,6 +70,7 @@ function islandora_item_nominations_islandora_basic_collection_build_manage_obje
  * Manage namespace homepage
  */
 function islandora_item_nominations_form_admin_form_alter(&$form, &$form_state) {
+  module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
   $params = current_path();
   $namespace = explode('/', $params);
   $ns = $namespace[0] . '-';
@@ -106,17 +107,7 @@ function islandora_item_nominations_form_admin_form_alter(&$form, &$form_state) 
   return $form;
 }
 
-function islandora_namespace_context_add(&$form, &$form_state){
-  foreach ($form_state['input']['table'] as $id) {
-    db_update('islandora_item_nominations')
-      ->condition('id',$id)
-      ->fields(array(
-        'context_type' => 'namespace',
-        'context_id' => $form['ns']['#value']. '-'
-      ))
-      ->execute();
-  }
-}
+
 
 /**
  * Return the key image for a given context.
@@ -136,6 +127,7 @@ function islandora_item_nominations_get_key_image($context) {
 }
 
 function retrieval_helper($db_query) {
+  module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
   if ($db_query->rowCount() >=1) {
     $count = ($db_query->rowCount() - 1);
     //Picks a random image from the pool.
@@ -163,60 +155,11 @@ function retrieval_helper($db_query) {
   retrieval_helper($potential_keys);
 }
 
-/**
- * Called when a new item is chosen for the given context.
- *
- * @param string $pid
- *   Object pid of new object.
- * @param string $context
- *   Context id, collection pid, cpd pid, or namespace prefix.
- *
- * @return array $pid_and_dsid
- */
-function islandora_item_nominations_unset_key($pid, $context) {
-  //set some field to NULL (see readme line 57).
-  $meta = get_image_metadata($pid);
-}
-
-/**
- * Update db record for a pid setting value for a context.
- *
- * @param string $pid
- *   Object pid of new object.
- * @param string $context
- *   Context id, collection pid, cpd pid, or namespace prefix.
- * @param string $context_id
- *   Context id, collection pid, cpd pid, or namespace prefix.
- *
- * @return array $pid_and_dsid
- *   Object pid, and which datastream to use.
- */
-function islandora_item_nominations_set_key($pid, $context, $context_id) {
-  //
-}
-
-/**
- * Loads image metadata.
- *
- *@param abstract $object
- *  Preloaded object
- */
-function get_image_metadata($object) {
-  module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
-  $mods = simplexml_load_string($object['MODS']->content);
-  return array(
-    'title' => property_exists($mods, 'titleInfo') ? (string) $mods->titleInfo->title : t('Title Info Title is missing'),
-    'description' => property_exists($mods, 'abstract') ? (string) $mods->abstract : t('Description missing'),
-    'creator' => property_exists($mods, 'creator') ? $mods->creator : t('Creator missing'),
-    'date_created' => property_exists($mods, 'date_created') ? $mods : t('Date created missing'),
-    'cmodel' => nominations_map_cmodels($object->models[0])
-  );
-}
-
 //not working yet...
 function get_collection_grid_key_images_and_meta($associated_objects_array) {
   dpm('are they pids');
   dpm($objects);
+  module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
   $key_images_and_meta = array();
   //loop through
   foreach ($objects as $item) {
@@ -265,7 +208,7 @@ function where_ami() {
     dpm('root');
     //check for this goes in the hook_template_preprocess_islandora_basic_collection_grid.
 
-    //this only works if islandora:root has an image set...
+    //this would only work if islandora:root has an image set...
     $path = explode('/', current_path());
     $returns = islandora_item_nominations_get_key_image($path[2]);
   }
