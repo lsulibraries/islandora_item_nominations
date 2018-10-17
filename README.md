@@ -1,6 +1,6 @@
 # Item Nominations
 
-This module provides an apparatus for _nominating_ items so that their image/TN is available to various contexts.
+This module provides an apparatus for _nominating_ items so that their JPG/TN is available to various contexts.
 
 ## Description
 
@@ -54,19 +54,19 @@ The following functions and return values will be needed:
 * `islandora_item_nominations_get_frontpage_pool()`
   * `return $pool`
   * `$pool` _array_ set of db records `WHERE front = 1`
-* `denominate($pid, $context)`
+* `include/utilities.inc nominate($pid, $context)`
   * should be called when a new item is chosen for the given context
   * `$pid` _string_ dora/fedora PID
   * `$context` _string_ either 'coll' or 'ns'
   * set* the appropriate field to NULL
     * example: `UPDATE <tablename> SET collkey = NULL;`
-* `nominate($pid, $context, $context_id)`
+* `include/utilities.inc nominate($pid, $context, $context_id)`
   * update the db record for a pid, setting a value for a context
   * `$pid` _string_ dora/fedora PID
   * `$context` _string_ ie 'coll' or 'ns'
   * `$context_id` _string_ the actual pid or namespace prefix
   * `islandora_item_nominations_get_image_metadata($pid)`
-    * `return [$title, $description, $creator, $date_created, $cmodel]`
+    * return [$title, $description, $creator, $date_created, $cmodel]
 
 ### Forms
 * item-level nominate checkbox (hook item properties form)
