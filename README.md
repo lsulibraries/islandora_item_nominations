@@ -60,13 +60,12 @@ The following functions and return values will be needed:
   * `$context` _string_ either 'coll' or 'ns'
   * set* the appropriate field to NULL
     * example: `UPDATE <tablename> SET collkey = NULL;`
-* `include/utilities.inc nominate($pid, $context, $context_id)`
+* `include/utilities.inc nominate($pid, $dsid)`
   * update the db record for a pid, setting a value for a context
   * `$pid` _string_ dora/fedora PID
-  * `$context` _string_ ie 'coll' or 'ns'
-  * `$context_id` _string_ the actual pid or namespace prefix
-  * `islandora_item_nominations_get_image_metadata($pid)`
-    * return [$title, $description, $creator, $date_created, $cmodel]
+  * `$dsid` _string_ Datastream ID
+* `islandora_item_nominations_get_image_metadata($pid)`
+  * return [$title, $description, $creator, $date_created, $cmodel]
 
 ### Forms
 * item-level nominate checkbox (hook item properties form)
