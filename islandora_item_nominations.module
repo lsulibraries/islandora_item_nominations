@@ -171,7 +171,7 @@ function retrieval_helper($db_query) {
  *   Set of db records, images available for frontpage
  */
  function islandora_item_nominations_get_frontpage_pool() {
-  $potential_keys = db_query('SELECT * FROM islandora_item_nominations WHERE front = 1');
+  $potential_keys = db_query('SELECT * FROM islandora_item_nominations WHERE front = 1 AND dsid = :jpg', array(':jpg' => 'JPG'));
   retrieval_helper($potential_keys);
 }
 

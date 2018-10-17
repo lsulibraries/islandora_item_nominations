@@ -36,7 +36,7 @@ This module provides an apparatus for _nominating_ items so that their image/TN 
 
 1. prefer JPG datastream, use TN as a fallback
 2. metadata from MODS will be title, description, creator, date, (cmodel is not part of metadata cmodel but pulled from the RI)
-3. item eligibility; nominate control will only be rendered for items that
+3. `is_eligible()` determines item eligibility; nominate control will only be rendered for items that
   1. are not embargoed
   2. are published (toggle_unpublish module_exists)
   3. do not have generic image/tn (audio, that folder icon)
