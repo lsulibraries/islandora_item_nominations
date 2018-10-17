@@ -38,11 +38,14 @@ function islandora_item_nominations_form_islandora_object_properties_form_alter(
   );
   $dsid = '';
   foreach ($object as $datastream) {
-    if ($datastream->id == 'JPG') {
-      $form['nominate'] = $checkbox;
-    }
-    else {
-      $form['nominate'] = $checkbox;
+    if (is_eligible($form['pid']['#value'])) {
+      //define elegibility here.
+      if ($datastream->id == 'JPG') {
+        $form['nominate'] = $checkbox;
+      }
+      else {
+        $form['nominate'] = $checkbox;
+      }
     }
   }
   array_unshift($form['#submit'], 'islandora_item_nominations_submit_handler');
@@ -56,12 +59,14 @@ return $form;
  * Returns either the nominate or denominate function.
  */
 function islandora_item_nominations_submit_handler(&$form, &$form_state) {
-  $obj = $form_state['object'];
-  $dsid = jpg_over_tn($obj);
-  if ($form_state['input']['form_id'] == 'islandora_object_properties_form') {
-    $fn = $form_state['input']['nominate'] ? 'nominate' : 'denominate';
-    $return = $form_state['input']['nominate'] ? $fn($form_state['values']['pid'], $dsid): $fn($form_state['values']['pid']);
-    return $return;
+  if (isset($form['nominate'])) {
+    $obj = $form_state['object'];
+    $dsid = jpg_over_tn($obj);
+    if ($form_state['input']['form_id'] == 'islandora_object_properties_form') {
+      $fn = $form_state['input']['nominate'] ? 'nominate' : 'denominate';
+      $return = $form_state['input']['nominate'] ? $fn($form_state['values']['pid'], $dsid): $fn($form_state['values']['pid']);
+      return $return;
+    }
   }
 }
 
@@ -153,7 +158,6 @@ function retrieval_helper($db_query) {
     $dsid = $pool[$which]->dsid;
     $obj = islandora_object_load($pid);
     $meta = get_image_metadata($obj);
-    dpm($meta);
     $image = $obj[$dsid];
     //$image->getContent('/tmp/image.file');
   }
@@ -203,7 +207,6 @@ function islandora_item_nominations_template_preprocess_islandora_basic_collecti
 
 function where_ami() {
   if (current_path() == '') {
-    dpm('<front>ish');
     islandora_item_nominations_get_frontpage_pool();
     //islandora_item_nominations_get_key_image('front');
   }
@@ -215,13 +218,11 @@ function where_ami() {
     foreach ($list as $namespace) {
       $ns = str_replace('-*', '', $namespace);
       if (current_path() == $ns) {
-        dpm('namespace');
         islandora_item_nominations_get_key_image($ns . '-');
       }
     }
   }
   if (current_path() == 'islandora/object/islandora:root') {
-    dpm('root');
     //check for this goes in the hook_template_preprocess_islandora_basic_collection_grid.
 
     //this would only work if islandora:root has an image set...
@@ -230,7 +231,6 @@ function where_ami() {
   }
   if (preg_match('%islandora/object/(.*):collection%', current_path())) {
     if(!preg_match('%collection/%', current_path())){
-      dpm('collection');
       $path = explode('/', current_path());
       islandora_item_nominations_get_key_image($path[2]);
     }

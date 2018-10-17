@@ -34,8 +34,8 @@ This module provides an apparatus for _nominating_ items so that their image/TN 
 
 ### Constraints / Requirements / Rules
 
-1. prefer JPEG datastream, use TN as a fallback
-2. metadata required will be title, description, creator, date, cmodel
+1. prefer JPG datastream, use TN as a fallback
+2. metadata from MODS will be title, description, creator, date, (cmodel is not part of metadata cmodel but pulled from the RI)
 3. item eligibility; nominate control will only be rendered for items that
   1. are not embargoed
   2. are published (toggle_unpublish module_exists)
@@ -54,13 +54,13 @@ The following functions and return values will be needed:
 * `islandora_item_nominations_get_frontpage_pool()`
   * `return $pool`
   * `$pool` _array_ set of db records `WHERE front = 1`
-* `islandora_item_nominations_unset_key($pid, $context)`
+* `denominate($pid, $context)`
   * should be called when a new item is chosen for the given context
   * `$pid` _string_ dora/fedora PID
   * `$context` _string_ either 'coll' or 'ns'
   * set* the appropriate field to NULL
     * example: `UPDATE <tablename> SET collkey = NULL;`
-* `islandora_item_nominations_set_key($pid, $context, $context_id)`
+* `nominate($pid, $context, $context_id)`
   * update the db record for a pid, setting a value for a context
   * `$pid` _string_ dora/fedora PID
   * `$context` _string_ ie 'coll' or 'ns'

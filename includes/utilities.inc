@@ -5,6 +5,24 @@
  *   Utility functions, check db, write or remove to database, and submit handler.
  */
 
+function is_eligible($pid) {
+  //check ip embargo
+  $ograbme = db_query("SELECT * from islandora_ip_embargo_embargoes where pid = :pid", array(':pid' => $pid));
+  $ip_embargoed = $ograbme->rowCount() > 0;
+  $notlisted = db_query("SELECT * FROM islandora_collection_toggle_publish_collections where pid = :pid", array(':pid' => $pid));
+  $published = $notlisted->rowCount() == 0;
+  if ($ip_embargoed) {
+    return FALSE;
+  }
+  elseif (!$published) {
+    //check that pid is not listed in islandora_collection_toggle_publish_collections
+    return FALSE;
+  }
+  else {
+    return TRUE;
+  }
+}
+
 /**
  *
  * Checks db for entry of a given pid.
