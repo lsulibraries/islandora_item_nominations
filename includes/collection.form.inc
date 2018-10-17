@@ -7,7 +7,7 @@ function islandora_item_nominations_collection_form($form, &$form_state) {
 $form = array();
 $coll_ns = explode(':', $form_state['build_info']['args']['0']->id);
 $coll_ns = $coll_ns[0];
-module_load_include('inc', 'islandora_item_nominations', 'includes/utilities')
+module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
 $options = get_nominated($coll_ns);
 
 $form['label'] = array(
@@ -42,13 +42,15 @@ return $form;
 function islandora_item_nominations_collection_form_submit(&$form, &$form_state) {
   module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
   foreach ($form_state['input']['table'] as $id) {
-    $pid = $form_state['complete form']['table']['#options'][$id]['pid'];
-    $fields = array(
-      'context_type' => 'collection',
-      'context_id' => $form_state['build_info']['args']['0']->id,
-    );
-    $id_condition = array('id' => $id);
-    context_update($pid, $fields, $id_condition);
-    update_collection_ds($fields['context_id']);
+    if ($id) {
+      $pid = $form_state['complete form']['table']['#options'][$id]['pid'];
+      $fields = array(
+        'context_type' => 'collection',
+        'context_id' => $form_state['build_info']['args']['0']->id,
+      );
+      $id_condition = array('id' => $id);
+      context_update($pid, $fields, $id_condition);
+      update_collection_ds($fields['context_id']);
+    }
   }
 }

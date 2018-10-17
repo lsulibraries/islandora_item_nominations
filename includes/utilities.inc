@@ -83,8 +83,11 @@ function jpg_over_tn($object) {
   if (is_object($object['JPG'])) {
     return 'JPG';
   }
-  else {
+  elseif (is_object($object['TN'])) {
     return 'TN';
+  }
+  else {
+    drupal_set_message('Object is lacking a valid datastream, try a child object instead or upload a thumbnail or a jpeg', 'error');
   }
 }
 
@@ -135,10 +138,15 @@ function update_collection_ds($coll_pid) {
     ->fetchAll();
     foreach($results as $result) {
       $object = islandora_object_load($result->pid);
-      $ds = $object[$result->dsid]->content;
-      $coll_obj = islandora_object_load($coll_pid);
-      $TN = $coll_obj['TN'];
-      $TN->setContentFromString($ds);
+      $ds = $object[$result->dsid];
+      if (isset($ds)) {
+        $coll_obj = islandora_object_load($coll_pid);
+        $TN = $coll_obj['TN'];
+        $TN->setContentFromString($ds->content);
+      }
+      else {
+        drupal_set_message('Datastream not valid', 'error');
+      }
     }
 
 }
