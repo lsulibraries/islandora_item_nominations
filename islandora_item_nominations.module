@@ -43,7 +43,7 @@ function islandora_item_nominations_form_islandora_object_properties_form_alter(
       if ($datastream->id == 'JPG') {
         $form['nominate'] = $checkbox;
       }
-      else {
+      elseif (!isset($object['COLLECTION_POLICY'])){
         $form['nominate'] = $checkbox;
       }
     }
