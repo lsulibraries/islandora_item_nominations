@@ -90,16 +90,7 @@ function islandora_item_nominations_form_admin_form_alter(&$form, &$form_state) 
   $params = current_path();
   $namespace = explode('/', $params);
   $ns = $namespace[0] . '-';
-  $results = db_select('islandora_item_nominations', 'n')
-    ->fields('n')
-    ->condition('pid', $ns.'%', 'LIKE')
-    ->execute()
-    ->fetchAll();
-  $options = array();
-  foreach ($results as $result) {
-    $options[$result->id] = (array) $result;
-    $options[$result->id]['pid-link'] = l($result->pid, 'islandora/object/' . $result->pid);
-  }
+  $options = get_nominated($ns);
   $form['front'] = array(
     '#type' => 'fieldset',
     '#title' => t('Choose items, to give namespace specific context'),

@@ -7,16 +7,9 @@ function islandora_item_nominations_collection_form($form, &$form_state) {
 $form = array();
 $coll_ns = explode(':', $form_state['build_info']['args']['0']->id);
 $coll_ns = $coll_ns[0];
-$results = db_select('islandora_item_nominations', 'n')
-  ->fields('n')
-  ->condition('pid', $coll_ns.'%', 'LIKE')
-  ->execute()
-  ->fetchAll();
-$options = array();
-foreach ($results as $result) {
-  $options[$result->id] = (array) $result;
-  $options[$result->id]['pid-link'] = l($result->pid, 'islandora/object/' . $result->pid);
-}
+module_load_include('inc', 'islandora_item_nominations', 'includes/utilities')
+$options = get_nominated($coll_ns);
+
 $form['label'] = array(
   '#type' => 'fieldset',
   '#title' => t('Choose items, to give collection specific context'),

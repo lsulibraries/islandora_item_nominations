@@ -32,21 +32,20 @@ function is_nominated($pid) {
  */
 function nominate($pid, $dsid) {
   $check = is_nominated($pid);
-    if ($check) {
-      return; //already nominated
-    }
-    else {
-      db_insert('islandora_item_nominations')
-      ->fields(array('id', 'pid', 'dsid'))
-      ->values(
-        array(
-          'id' => NULL,
-          'pid' => $pid,
-          'dsid' => $dsid,
-        ))
-        ->execute();
-    }
-    drupal_theme_rebuild();
+  if ($check) {
+    return; //already nominated
+  }
+  else {
+    db_insert('islandora_item_nominations')
+    ->fields(array('id', 'pid', 'dsid'))
+    ->values(
+      array(
+        'id' => NULL,
+        'pid' => $pid,
+        'dsid' => $dsid,
+      ))
+      ->execute();
+  }
 }
 
 /**
@@ -60,8 +59,6 @@ function denominate($pid) {
   db_delete('islandora_item_nominations')
     ->condition('pid', $pid)
     ->execute();
-    drupal_theme_rebuild();
-
 }
 
 function jpg_over_tn($object) {
@@ -92,6 +89,21 @@ function context_update($pid, $fields, $id_condition = FALSE) {
     $bool = $fields['front'] ? 'true' : 'false';
     dsm("Context added for $pid, front page pool candidacy set to $bool");
   }
+}
+
+function get_nominated($namespace = FALSE) {
+  $query = db_select('islandora_item_nominations', 'n');
+  if ($namespace) {
+    $query->condition('pid', $namespace . '%', 'LIKE');
+  }
+    $query->fields('n');
+    $results = $query->execute();
+  $options = array();
+  foreach ($results as $result) {
+    $options[$result->id] = (array) $result;
+    $options[$result->id]['pid-link'] = l($result->pid, 'islandora/object/' . $result->pid);
+  }
+  return $options;
 }
 
 function update_collection_ds($coll_pid) {

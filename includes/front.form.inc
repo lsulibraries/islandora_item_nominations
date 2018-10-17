@@ -8,15 +8,9 @@
  * Implements hook_form().
  */
 function islandora_item_nominations_front_form($form, &$form_state) {
+  module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
   $form = array();
-  $results = db_select('islandora_item_nominations', 'n')
-    ->fields('n')
-    ->execute()
-    ->fetchAll();
-  foreach ($results as $result) {
-    $options[$result->id] = (array) $result;
-    $options[$result->id]['pid-link'] = l($result->pid, 'islandora/object/' . $result->pid);
-  }
+  $options = get_nominated();
   $form['front'] = array(
     '#type' => 'fieldset',
     '#title' => t('Choose items for front-page pool'),
