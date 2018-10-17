@@ -54,14 +54,17 @@ function nominate($pid, $dsid) {
     return; //already nominated
   }
   else {
+    $values = array(
+      'id' => NULL,
+      'pid' => $pid,
+      'dsid' => $dsid,
+    );
+    if ($dsid == 'TN') {
+      $values['front'] = '0';
+    }
     db_insert('islandora_item_nominations')
     ->fields(array('id', 'pid', 'dsid'))
-    ->values(
-      array(
-        'id' => NULL,
-        'pid' => $pid,
-        'dsid' => $dsid,
-      ))
+    ->values($values)
       ->execute();
   }
 }
