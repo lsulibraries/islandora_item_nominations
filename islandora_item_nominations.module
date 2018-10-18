@@ -43,7 +43,7 @@ function islandora_item_nominations_form_islandora_object_properties_form_alter(
       if ($datastream->id == 'JPG') {
         $form['nominate'] = $checkbox;
       }
-      elseif (!isset($object['COLLECTION_POLICY'])) {
+      elseif (!isset($object['COLLECTION_POLICY']) && isset($object['TN'])) {
         $form['nominate'] = $checkbox;
       }
     }
@@ -139,100 +139,82 @@ function islandora_namespace_context_add(&$form, &$form_state){
  * @return array $pid_and_dsid
  *   Object pid, and which datastream to use.
  */
-function islandora_item_nominations_get_key_image($context) {
-  $qargs = [':context' => $context];
-  $qtext = "SELECT * FROM islandora_item_nominations WHERE context_id = :context";
-  $potential_key = db_query($qtext, $qargs);
-  retrieval_helper($potential_key);
-  //add conditional to check for ns_homepage.
-}
-
-function retrieval_helper($db_query) {
+function islandora_item_nominations_get_key_image($namespace = FALSE, $front = FALSE) {
   module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
-  if ($db_query->rowCount() >=1) {
-    $count = ($db_query->rowCount() - 1);
-    //Picks a random image from the pool.
-    $which = rand(0, $count);
-    $pool = $db_query->fetchAll();
-    $pid = $pool[$which]->pid;
-    $dsid = $pool[$which]->dsid;
-    $obj = islandora_object_load($pid);
-    $meta = get_image_metadata($obj);
-    $image = $obj[$dsid];
-    //$image->getContent('/tmp/image.file');
+  $keys = get_nominated($namespace, $front);
+  $essential_info = array();
+  foreach ($keys as $k => $v) {
+    $essential_info[] = $v;
   }
+  return retrieval_helper($essential_info);
 }
 
-/**
- * Return the key image for a given context.
- *   Randomizes the pick.
- *
- * @return array $pool
- *   Set of db records, images available for frontpage
- */
- function islandora_item_nominations_get_frontpage_pool() {
-  $potential_keys = db_query('SELECT * FROM islandora_item_nominations WHERE front = 1 AND dsid = :jpg', array(':jpg' => 'JPG'));
-  retrieval_helper($potential_keys);
-}
-
-//not working yet...
-function get_collection_grid_key_images_and_meta($associated_objects_array) {
-  dpm('are they pids');
-  dpm($objects);
+//randomly picks a key image, return metadata and path to image.
+function retrieval_helper($keys) {
   module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
-  $key_images_and_meta = array();
-  //loop through
-  foreach ($objects as $item) {
-    islandora_object_load($item);
-    $key_images_and_meta[$item->id]['meta'] = get_image_metadata($item->id);
-    $key_images_and_meta[$item->id]['image'] = islandora_item_nominations_get_key_image($item->id);
-
-
+  if (count($keys) >=1) {
+    $count = (count($keys) - 1);
+    //Picks a random image from the pool.
+    $which = $keys[rand(0, $count)];
+    $pid = $which['pid'];
+    $dsid = $which['dsid'];
+    $path  = $_SERVER['HTTP_HOST'] . "/islandora/object/$pid/datastream/$dsid/view";
+    $return = array(
+      'meta' => get_image_metadata(islandora_object_load($pid)),
+      'path' => $path,
+    );
+    return $return;
   }
 }
 
 /**
  *  Implements hook_preprocess_TEMPLATE_ID().
- * //not really working as expected
+ *    Purpose is to pass in images and metadata
  */
-function islandora_item_nominations_template_preprocess_islandora_basic_collection_grid(&$variables) {
-  dpm('hooked');
+function islandora_item_nominations_preprocess_islandora_basic_collection_grid(&$variables) {
   if (current_path() == 'islandora/object/islandora:root') {
-    dpm('hooked on root');
     //load the key images for each collection, limited to the current page.
-    dpm($variables['associated_objects_array']);
-    get_collection_grid_key_images_and_meta($variables['islandora_object']);
+    foreach ($variables['associated_objects_array'] as $associated_obj) {
+      $object = $associated_obj['object'];
+      $namespace = explode(':', $object->id);
+      $ns = $namespace[0];
+      $key_image_and_meta = islandora_item_nominations_get_key_image($ns);
+      dpm($key_image_and_meta);
+      dpm($object->id);
+    }
   }
 }
 
 function where_ami() {
   if (current_path() == '') {
-    islandora_item_nominations_get_frontpage_pool();
+    $key = islandora_item_nominations_get_key_image(FALSE, 'front');
+    dpm($key);
+    //at the front page, need a better way to pass in context.
+    //islandora_get_context_key();
+    //islandora_item_nominations_get_frontpage_pool();
     //islandora_item_nominations_get_key_image('front');
   }
   if (module_exists('islandora_namespace_homepage')){
     module_load_include('php', 'islandora_namespace_homepage', '/includes/utilities');
-    //need namespace list
     $list = get_all_collections_inst();
-
+    $key = '';
     foreach ($list as $namespace) {
       $ns = str_replace('-*', '', $namespace);
       if (current_path() == $ns) {
-        islandora_item_nominations_get_key_image($ns . '-');
+        $key = islandora_item_nominations_get_key_image($ns . '-');
       }
     }
+    dpm($key);
   }
   if (current_path() == 'islandora/object/islandora:root') {
     //check for this goes in the hook_template_preprocess_islandora_basic_collection_grid.
-
-    //this would only work if islandora:root has an image set...
-    $path = explode('/', current_path());
-    $returns = islandora_item_nominations_get_key_image($path[2]);
   }
   if (preg_match('%islandora/object/(.*):collection%', current_path())) {
     if(!preg_match('%collection/%', current_path())){
       $path = explode('/', current_path());
-      islandora_item_nominations_get_key_image($path[2]);
+      $coll_ns = explode(':', $path[2]);
+      $key = islandora_item_nominations_get_key_image($coll_ns[0]);
+      dpm($key);
     }
   }
 }

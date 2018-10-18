@@ -48,5 +48,63 @@ function islandora_item_nominations_schema() {
     ),
     'primary key' => array('id'),
   );
+  $schema['islandora_item_nominations_context_front'] = array(
+    'description' => 'nominated items for the front page image pool',
+    'fields' => array(
+      'pid' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'description' => 'islandora/fedora pid',
+      ),
+      'context_type' => array(
+        'type' => 'int',
+        'length' => 'tiny',
+        'description' => 'front page elegibility',
+      ),
+    ),
+    'primary key' => array('pid'),
+  );
+  $schema['islandora_item_nominations_context_collection'] = array(
+    'description' => 'nominated items for collection image pools',
+    'fields' => array(
+      'pid' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'description' => 'islandora/fedora pid',
+      ),
+      'context_id' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'description' => 'unique id for the context, a collection pid',
+      ),
+      'context_type' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'description' => 'collection, cpd, or namespace prefix',
+      ),
+    ),
+    'primary key' => array('pid'),
+  );
+  $schema['islandora_item_nominations_context_namespace'] = array(
+    'description' => 'nominated items for namespace homepage image pool',
+    'fields' => array(
+      'pid' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'description' => 'islandora/fedora pid',
+      ),
+      'context_id' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'description' => 'unique id for the context, a namespace prefix',
+      ),
+      'context_type' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'description' => 'collection, cpd, or namespace prefix',
+      ),
+    ),
+    'primary key' => array('pid'),
+  );
   return $schema;
 }

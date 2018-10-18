@@ -65,7 +65,7 @@ function nominate($pid, $dsid) {
     db_insert('islandora_item_nominations')
     ->fields(array('id', 'pid', 'dsid'))
     ->values($values)
-      ->execute();
+    ->execute();
   }
 }
 
@@ -77,6 +77,7 @@ function nominate($pid, $dsid) {
  * Object pid
  */
 function denominate($pid) {
+  //adapt to remove from multiple tables
   db_delete('islandora_item_nominations')
     ->condition('pid', $pid)
     ->execute();
@@ -97,6 +98,7 @@ function jpg_over_tn($object) {
 
 
 function context_update($pid, $fields, $id_condition = FALSE) {
+  //adapt to use multiple tables
   $query = db_update('islandora_item_nominations');
   if($id_condition != FALSE) {
     $query->condition('id' ,$id_condition['id']);
@@ -115,10 +117,15 @@ function context_update($pid, $fields, $id_condition = FALSE) {
   }
 }
 
-function get_nominated($namespace = FALSE) {
+function get_nominated($namespace = FALSE, $front = FALSE) {
+  //get ready for multiple tables,
+  //add a context argument, and make a joined table of items, could remove LIKE condition possibly...
   $query = db_select('islandora_item_nominations', 'n');
   if ($namespace) {
     $query->condition('pid', $namespace . '%', 'LIKE');
+  }
+  if ($front) {
+    $query->condition('front' , '1');
   }
     $query->fields('n');
     $results = $query->execute();
