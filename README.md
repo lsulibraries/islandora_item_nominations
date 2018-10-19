@@ -76,3 +76,15 @@ The following functions and return values will be needed:
 * this module is potentially valuable outside of LSU, decouple this from our namespace-prefix machinery
   * instead, let ns-homepage use this module
 * break out the table schema
+
+## * Update to planning.
+* To make things simpler and more versatile, we proposed multiple db tables per context, along with a neutral list of all items Nominated
+  * by joining tables together we can get as many contexts per item, and as many items eligible per context as possible.
+* steps to go through
+  * item is chosen for nomination at object/manage/properties
+  * item is now a potential candidate for collection, namespace and homepage, and any other context.
+  * visit a context admin page, ie admin_form, collection/manage, or islandora/tools/front-page-pools
+  * choose from potential candidates which will be used and update the respective context's database.
+  * context displays both potential candidates and those already chosen by database join.
+  * removing a canditade from a context doesn't make them ineligibel
+  * removing an object's nomination from object/manage/properties removes the obj from all databases.

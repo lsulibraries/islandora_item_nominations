@@ -83,20 +83,9 @@ function denominate($pid) {
     ->execute();
 }
 
-function jpg_over_tn($object) {
-  if (is_object($object['JPG'])) {
-    return 'JPG';
-  }
-  elseif (is_object($object['TN'])) {
-    return 'TN';
-  }
-  else {
-    drupal_set_message('Object is lacking a valid datastream, try a child object instead or upload a thumbnail or a jpeg', 'error');
-  }
-}
 
 
-
+//old way.
 function context_update($pid, $fields, $id_condition = FALSE) {
   //adapt to use multiple tables
   $query = db_update('islandora_item_nominations');
@@ -117,13 +106,35 @@ function context_update($pid, $fields, $id_condition = FALSE) {
   }
 }
 
+
+//new for multi table
+function context_update_context_id($pid, $context_type, $context_id = NULL) {
+  //$context_id is null by default and will remove the current context id.
+  //$context_type is one of three strings plus any number of user defined strings
+  //as well as a unique database.
+  $db_call = is_null($context_id) ? 'db_delete' : 'db_insert';
+  $state = is_null($context_id) ? 'deleted' : 'added';
+  $fields = array(
+    'pid' => $pid,
+    'context_id' => $context_id
+  );
+  $update = $db_call("islandora_item_nominations_$context_type")
+    ->fields($fields)
+    ->execute();
+  dsm("Context '$context_type' $state for $pid.");
+}
+
+
 function get_nominated($namespace = FALSE, $front = FALSE) {
-  //get ready for multiple tables,
-  //add a context argument, and make a joined table of items, could remove LIKE condition possibly...
+  //get ready for multi table db
+  //remove front argument.
+  //like condition does a fairly good job of finding both ns_context items and collection context items
+  //maybe this works fine...
   $query = db_select('islandora_item_nominations', 'n');
   if ($namespace) {
     $query->condition('pid', $namespace . '%', 'LIKE');
   }
+  //remove this condition.
   if ($front) {
     $query->condition('front' , '1');
   }
@@ -132,11 +143,13 @@ function get_nominated($namespace = FALSE, $front = FALSE) {
   $options = array();
   foreach ($results as $result) {
     $options[$result->id] = (array) $result;
-    $options[$result->id]['pid-link'] = l($result->pid, 'islandora/object/' . $result->pid);
+    $pid = $result->pid;
+    $options[$result->id]['pid-link'] = l($result->pid, "islandora/object/$pid");
   }
   return $options;
 }
 
+//not really a great fn, we don't want to update the TN every time we visit root, or ns homepage
 function update_collection_ds($coll_pid) {
   $coll_ns = explode(':', $coll_pid);
   $coll_ns = $coll_ns[0];
@@ -146,19 +159,18 @@ function update_collection_ds($coll_pid) {
     ->condition('context_id', $coll_pid)
     ->execute()
     ->fetchAll();
-    foreach($results as $result) {
-      $object = islandora_object_load($result->pid);
-      $ds = $object[$result->dsid];
-      if (isset($ds)) {
-        $coll_obj = islandora_object_load($coll_pid);
-        $TN = $coll_obj['TN'];
-        $TN->setContentFromString($ds->content);
-      }
-      else {
-        drupal_set_message('Datastream not valid', 'error');
-      }
+  foreach($results as $result) {
+    $object = islandora_object_load($result->pid);
+    $ds = $object[$result->dsid];
+    if (isset($ds)) {
+      $coll_obj = islandora_object_load($coll_pid);
+      $TN = $coll_obj['TN'];
+      $TN->setContentFromString($ds->content);
     }
-
+    else {
+      drupal_set_message('Datastream not valid', 'error');
+    }
+  }
 }
 
 /**
@@ -206,4 +218,16 @@ function nominations_map_cmodels($model) {
         return $model;
     }
     return $model;
+}
+
+function jpg_over_tn($object) {
+  if (is_object($object['JPG'])) {
+    return 'JPG';
+  }
+  elseif (is_object($object['TN'])) {
+    return 'TN';
+  }
+  else {
+    drupal_set_message('Object is lacking a valid datastream, try a child object instead or upload a thumbnail or a jpeg', 'error');
+  }
 }

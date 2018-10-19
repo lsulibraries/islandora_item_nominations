@@ -179,8 +179,8 @@ function islandora_item_nominations_preprocess_islandora_basic_collection_grid(&
       $namespace = explode(':', $object->id);
       $ns = $namespace[0];
       $key_image_and_meta = islandora_item_nominations_get_key_image($ns);
-      dpm($key_image_and_meta);
-      dpm($object->id);
+      //dpm($key_image_and_meta);
+      //dpm($object->id);
     }
   }
 }
@@ -188,7 +188,7 @@ function islandora_item_nominations_preprocess_islandora_basic_collection_grid(&
 function where_ami() {
   if (current_path() == '') {
     $key = islandora_item_nominations_get_key_image(FALSE, 'front');
-    dpm($key);
+    // dpm($key);
     //at the front page, need a better way to pass in context.
     //islandora_get_context_key();
     //islandora_item_nominations_get_frontpage_pool();
@@ -204,7 +204,7 @@ function where_ami() {
         $key = islandora_item_nominations_get_key_image($ns . '-');
       }
     }
-    dpm($key);
+    //dpm($key);
   }
   if (current_path() == 'islandora/object/islandora:root') {
     //check for this goes in the hook_template_preprocess_islandora_basic_collection_grid.
@@ -214,7 +214,7 @@ function where_ami() {
       $path = explode('/', current_path());
       $coll_ns = explode(':', $path[2]);
       $key = islandora_item_nominations_get_key_image($coll_ns[0]);
-      dpm($key);
+      //dpm($key);
     }
   }
 }
