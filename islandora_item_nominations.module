@@ -10,11 +10,11 @@
 function islandora_item_nominations_menu() {
   $items = array();
   $items['admin/islandora/tools/nominations'] = array(
-    'title' => t('Front-page image pool'),
+    'title' => t('Nominate front page background items'),
     'description' => t('Choose which items to include on the front page rotation'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('islandora_item_nominations_front_form'),
-    'access arguments' => array('Administrate front page image pool'),
+    'access arguments' => array('administer site configuration'),
     'file' => 'includes/front.form.inc',
     'type' => MENU_NORMAL_ITEM,
   );
@@ -32,7 +32,7 @@ function islandora_item_nominations_form_islandora_object_properties_form_alter(
   }
   $checkbox = array(
     '#type' => 'checkbox',
-    '#title' => t('Nominate as featured item of collection'),
+    '#title' => t('Nominate as featured item.'),
     '#description' => t('Adds either the JPG or TN (prefers JPG) for this object to a pool of featured items'),
     '#default_value' => is_nominated($form['pid']['#value']) ? TRUE : FALSE,
   );
@@ -103,9 +103,6 @@ function islandora_item_nominations_form_admin_form_alter(&$form, &$form_state) 
   $headers = array(
     'pid-link' => array('data' => t('Item pid'), 'field' => 'n.pid'),
     'dsid' => array('data' => t('Datastream'), 'field' => 'n.dsid'),
-    'context_id' => array('data' => t('Context Id (pid or namespace)'), 'field' => 'n.context_id'),
-    'context_type' => array('data' => t('Type of Context'), 'field' => 'n.context_type'),
-    'front' => array('data' => t('Show on frontpage'), 'field' => 'n.front'),
   );
   $form['table'] = array(
     '#type' => 'tableselect',
@@ -113,7 +110,7 @@ function islandora_item_nominations_form_admin_form_alter(&$form, &$form_state) 
     '#description' => t('Choose items to be featured on the institution/sub-institution homepage.'),
     '#header' => $headers,
     '#options' => $options,
-    '#empty' => t('No items added yet, to nominate visit islandora/object/%object:pid%/manage/properties'),
+    '#empty' => t("No items added yet, to nominate an object go to the object's manage->properties page"),
   );
   array_unshift($form['#submit'], 'islandora_namespace_context_add');
   return $form;
@@ -126,7 +123,9 @@ function islandora_namespace_context_add(&$form, &$form_state){
       'context_type' => 'namespace',
       'context_id' => $form['ns']['#value']. '-'
     );
-    context_update($form_state['complete form']['table']['#options'][$id]['pid'], $fields);
+    if(isset($form_state['complete form']['table']['#options'][$id]['pid'])) {
+      context_update_context_id($form_state['complete form']['table']['#options'][$id]['pid'], $fields );
+    }
   }
 }
 
@@ -139,9 +138,9 @@ function islandora_namespace_context_add(&$form, &$form_state){
  * @return array $pid_and_dsid
  *   Object pid, and which datastream to use.
  */
-function islandora_item_nominations_get_key_image($namespace = FALSE, $front = FALSE) {
+function islandora_item_nominations_get_key_image($context = FALSE, $namespace = FALSE) {
   module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
-  $keys = get_nominated($namespace, $front);
+  $keys = get_nominated_for_context($context, $namespace);
   $essential_info = array();
   foreach ($keys as $k => $v) {
     $essential_info[] = $v;
@@ -158,7 +157,7 @@ function retrieval_helper($keys) {
     $which = $keys[rand(0, $count)];
     $pid = $which['pid'];
     $dsid = $which['dsid'];
-    $path  = $_SERVER['HTTP_HOST'] . "/islandora/object/$pid/datastream/$dsid/view";
+    $path  = "/islandora/object/$pid/datastream/$dsid/view"; // $_SERVER['HTTP_HOST'] . "/islandora/object/$pid/datastream/$dsid/view";
     $return = array(
       'meta' => get_image_metadata(islandora_object_load($pid)),
       'path' => $path,
@@ -173,26 +172,38 @@ function retrieval_helper($keys) {
  */
 function islandora_item_nominations_preprocess_islandora_basic_collection_grid(&$variables) {
   if (current_path() == 'islandora/object/islandora:root') {
-    //load the key images for each collection, limited to the current page.
-    foreach ($variables['associated_objects_array'] as $associated_obj) {
-      $object = $associated_obj['object'];
-      $namespace = explode(':', $object->id);
-      $ns = $namespace[0];
-      $key_image_and_meta = islandora_item_nominations_get_key_image($ns);
-      //dpm($key_image_and_meta);
-      //dpm($object->id);
-    }
+    //load the key images for each collection TN limited to the current page.
+    // $ns = '';
+    // foreach ($variables['associated_objects_array'] as $associated_obj) {
+    //   $object = $associated_obj['object'];
+    //   $namespace = explode(':', $object->id);
+    //   $ns = $namespace[0];
+    //   $key_image_and_meta = islandora_item_nominations_get_key_image($ns);
+    // }
+    //load a background image and metadata for the root collection
+    $key_image_and_meta = islandora_item_nominations_get_key_image('front');
+  }
+  else {
+    $key_image_and_meta = islandora_item_nominations_get_key_image('collection', $variables['islandora_object']->id);
+  }
+  $variables['key_image'] = $key_image_and_meta;
+}
+
+function islandora_item_nominations_preprocess_islandora_namespace_homepage(&$variables, $hook) {
+  dpm($hook);
+  dpm($variables);
+  $key_image_and_meta = islandora_item_nominations_get_key_image('namespace', $variables['nsHome']['namespace']);
+  if(isset($key_image_and_meta)) {
+    $variables['key_image'] = $key_image_and_meta;
   }
 }
 
 function where_ami() {
   if (current_path() == '') {
-    $key = islandora_item_nominations_get_key_image(FALSE, 'front');
-    // dpm($key);
+    // $key = islandora_item_nominations_get_key_image('front');
+    //front_bg_block_markup($key);
+
     //at the front page, need a better way to pass in context.
-    //islandora_get_context_key();
-    //islandora_item_nominations_get_frontpage_pool();
-    //islandora_item_nominations_get_key_image('front');
   }
   if (module_exists('islandora_namespace_homepage')){
     module_load_include('php', 'islandora_namespace_homepage', '/includes/utilities');
@@ -201,22 +212,56 @@ function where_ami() {
     foreach ($list as $namespace) {
       $ns = str_replace('-*', '', $namespace);
       if (current_path() == $ns) {
-        $key = islandora_item_nominations_get_key_image($ns . '-');
+        // $key = islandora_item_nominations_get_key_image('namespace', $ns . '-');
       }
     }
-    //dpm($key);
-  }
-  if (current_path() == 'islandora/object/islandora:root') {
-    //check for this goes in the hook_template_preprocess_islandora_basic_collection_grid.
   }
   if (preg_match('%islandora/object/(.*):collection%', current_path())) {
     if(!preg_match('%collection/%', current_path())){
       $path = explode('/', current_path());
       $coll_ns = explode(':', $path[2]);
-      $key = islandora_item_nominations_get_key_image($coll_ns[0]);
-      //dpm($key);
+      $key = islandora_item_nominations_get_key_image('collection', $coll_ns[0]);
     }
   }
 }
 
 where_ami();
+
+
+// function front_bg_block_markup($key_image) {
+  // $path = $key_image['path'];
+  // $meta_title = $key_image['meta']['title'];
+  // $meta_desc = $key_image['meta']['description'];
+  // $meta_create = $key_image['meta']['creator'];
+  // $meta_cmodel = $key_image['meta']['cmodel'];
+
+  // $markup = "<div class='parralax-mirror'>  <img class='parallax-slider' src='<?php print $path>'></img>  <div class='parallax-meta'>$meta_title</div>  <div class='parallax-meta'>$meta_desc</div>  <div class='parallax-meta'>$meta_create</div>  <div class='parallax-meta'>$meta_cmodel</div>  </div>";
+  // return array('#markup' => $markup);
+// }
+//
+// function islandora_item_nominations_block_info() {
+//   $blocks = array();
+//   $blocks['front_bg_block'] = array(
+//     'info' => t('Islandora Item Nominations Frontpage Background Image Block'),
+//     'status' => TRUE,
+//     'region' => 'content',
+//     'weight' => 1,
+//     'visibility' => BLOCK_VISIBILITY_LISTED,
+//     'pages' => '<front>',
+//   );
+//   // return $blocks;
+// }
+//
+// function islandora_item_nominations_block_view($delta = '') {
+//   switch ($delta) {
+//     case ('front_bg_block') :
+//        $block['weight'] = 1;
+//        // $block['content'] = front_bg_block_markup();
+//        $block['visibility'] = BLOCK_VISIBILITY_LISTED;
+//        $block['pages'] = '<front>';
+//        $block['region'] = 'content';
+//        $block['title'] = '<none>';
+//     break;
+//   }
+//   // return $block;
+// }

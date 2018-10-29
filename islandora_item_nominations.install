@@ -27,24 +27,6 @@ function islandora_item_nominations_schema() {
         'length' => 255,
         'description' => 'datastream id(JPEG, TN) used as key image',
       ),
-      'context_id' => array(
-        'type' => 'varchar',
-        'length' => 255,
-        'description' => 'unique id for the context, a pid or namespace prefix',
-      ),
-      'context_type' => array(
-        'type' => 'varchar',
-        'length' => 255,
-        'description' => 'collection, cpd, or namespace prefix',
-      ),
-      'front' => array(
-        'type' => 'int',
-        'length' => 'tiny',
-        'unsigned' => true,
-        'not_null' => true,
-        'default' => true,
-        'description' => 'should this be stored in the front-page pool of potentials item for display on the <front> page',
-      ),
     ),
     'primary key' => array('id'),
   );
@@ -55,11 +37,6 @@ function islandora_item_nominations_schema() {
         'type' => 'varchar',
         'length' => 255,
         'description' => 'islandora/fedora pid',
-      ),
-      'context_type' => array(
-        'type' => 'int',
-        'length' => 'tiny',
-        'description' => 'front page elegibility',
       ),
     ),
     'primary key' => array('pid'),
@@ -77,11 +54,6 @@ function islandora_item_nominations_schema() {
         'length' => 255,
         'description' => 'unique id for the context, a collection pid',
       ),
-      'context_type' => array(
-        'type' => 'varchar',
-        'length' => 255,
-        'description' => 'collection, cpd, or namespace prefix',
-      ),
     ),
     'primary key' => array('pid'),
   );
@@ -97,11 +69,6 @@ function islandora_item_nominations_schema() {
         'type' => 'varchar',
         'length' => 255,
         'description' => 'unique id for the context, a namespace prefix',
-      ),
-      'context_type' => array(
-        'type' => 'varchar',
-        'length' => 255,
-        'description' => 'collection, cpd, or namespace prefix',
       ),
     ),
     'primary key' => array('pid'),

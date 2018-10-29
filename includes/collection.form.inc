@@ -17,9 +17,6 @@ $form['label'] = array(
 $headers = array(
   'pid-link' => array('data' => t('Item pid'), 'field' => 'n.pid'),
   'dsid' => array('data' => t('Datastream'), 'field' => 'n.dsid'),
-  'context_id' => array('data' => t('Context Id (pid or namespace)'), 'field' => 'n.context_id'),
-  'context_type' => array('data' => t('Type of Context'), 'field' => 'n.context_type'),
-  'front' => array('data' => t('Show on frontpage'), 'field' => 'n.front'),
 );
 $form['table'] = array(
   '#type' => 'tableselect',
@@ -48,8 +45,8 @@ function islandora_item_nominations_collection_form_submit(&$form, &$form_state)
         'context_type' => 'collection',
         'context_id' => $form_state['build_info']['args']['0']->id,
       );
-      $id_condition = array('id' => $id);
-      context_update($pid, $fields, $id_condition);
+      context_update_context_id($pid, $fields);
+      //consider not updating the coll TN
       update_collection_ds($fields['context_id']);
     }
   }

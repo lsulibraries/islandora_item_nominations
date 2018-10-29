@@ -25,16 +25,24 @@ function is_eligible($pid) {
 
 /**
  *
- * Checks db for entry of a given pid.
+ * Checks db for entry of a given pid, optional arguments for context id and type
  *
  * @param string $pid
  * Object pid
  */
-function is_nominated($pid) {
-  $records = db_select('islandora_item_nominations', 'n')
-    ->fields('n', array('pid'))
-    ->condition('pid', $pid)
-    ->execute();
+function is_nominated($pid, $context_id = FALSE, $context_type = FALSE) {
+  $fields = $context_id ? array('pid', 'context_id', 'context_type') : array('pid');
+  $table = 'islandora_item_nominations';
+  if ($context_type) {
+    $table .= "_context_$context_type";
+  }
+  $query = db_select($table, 'n')
+    ->fields('n', $fields)
+    ->condition('pid', $pid);
+  if($context_id) {
+    $query->condition('context_id', $context_id);
+  }
+    $records = $query->execute();
     $nominated = $records->rowCount();
     return $nominated >= 1;
 }
@@ -51,7 +59,8 @@ function is_nominated($pid) {
 function nominate($pid, $dsid) {
   $check = is_nominated($pid);
   if ($check) {
-    return; //already nominated
+    //already nominated
+    return;
   }
   else {
     $values = array(
@@ -83,60 +92,35 @@ function denominate($pid) {
     ->execute();
 }
 
-
-
-//old way.
-function context_update($pid, $fields, $id_condition = FALSE) {
-  //adapt to use multiple tables
-  $query = db_update('islandora_item_nominations');
-  if($id_condition != FALSE) {
-    $query->condition('id' ,$id_condition['id']);
-  }
-  $query->fields($fields)
-    ->condition('pid', $pid)
-    ->execute();
-  if (isset($fields['context_type'])) {
-      $context_type = $fields['context_type'];
-      $context_id = $fields['context_id'];
-      dsm("Context added, $context_type set to $context_id for $pid");
+//new for multi table
+function context_update_context_id($pid, $fields) {
+  $c_type = $fields['context_type'];
+  $c_id = isset($fields['context_id']) ? $fields['context_id'] : FALSE;
+  //trace the condition back...
+  $condition = is_nominated($pid, $c_id, $c_type);
+  $db_call = $condition == FALSE ? 'db_insert' : 'db_delete';
+  $state = $condition == FALSE ? 'added' : 'deleted';
+  $fields = $c_id ? array('pid' => $pid, 'context_id' => $c_id): array('pid' => $pid);
+  $update = $db_call("islandora_item_nominations_context_$c_type");
+  if ($db_call == 'db_delete') {
+    $update->condition('pid', $pid);
+    if($c_id){
+      $update->condition('context_id', $c_id);
+    }
   }
   else {
-    $bool = $fields['front'] ? 'true' : 'false';
-    dsm("Context added for $pid, front page pool candidacy set to $bool");
+    $update->fields($fields);
   }
+  $update->execute();
+  dsm("Context '$c_type' $state for $pid.");
 }
 
-
-//new for multi table
-function context_update_context_id($pid, $context_type, $context_id = NULL) {
-  //$context_id is null by default and will remove the current context id.
-  //$context_type is one of three strings plus any number of user defined strings
-  //as well as a unique database.
-  $db_call = is_null($context_id) ? 'db_delete' : 'db_insert';
-  $state = is_null($context_id) ? 'deleted' : 'added';
-  $fields = array(
-    'pid' => $pid,
-    'context_id' => $context_id
-  );
-  $update = $db_call("islandora_item_nominations_$context_type")
-    ->fields($fields)
-    ->execute();
-  dsm("Context '$context_type' $state for $pid.");
-}
-
-
+//old way
+//works great for namespace homepage.
 function get_nominated($namespace = FALSE, $front = FALSE) {
-  //get ready for multi table db
-  //remove front argument.
-  //like condition does a fairly good job of finding both ns_context items and collection context items
-  //maybe this works fine...
   $query = db_select('islandora_item_nominations', 'n');
   if ($namespace) {
     $query->condition('pid', $namespace . '%', 'LIKE');
-  }
-  //remove this condition.
-  if ($front) {
-    $query->condition('front' , '1');
   }
     $query->fields('n');
     $results = $query->execute();
@@ -144,7 +128,31 @@ function get_nominated($namespace = FALSE, $front = FALSE) {
   foreach ($results as $result) {
     $options[$result->id] = (array) $result;
     $pid = $result->pid;
-    $options[$result->id]['pid-link'] = l($result->pid, "islandora/object/$pid");
+    $id = $result->id;
+    $options[$id]['pid-link'] = l($pid, "islandora/object/$pid");
+  }
+  return $options;
+}
+
+//context can be a collection, ns_homepage, or frontpage, or any user defined context
+//not used at the namespace homepage page, bc the old function works so well.
+function get_nominated_for_context($context_type, $context_id = FALSE) {
+  //this is more exact and can include 'front' as a context ID or any other user defined context
+  $query = db_select("islandora_item_nominations_context_$context_type", 'c');
+  if ($context_id) {
+    $query->condition('context_id', $context_id);
+  }
+  //join this table with the datastream of the nominated item.
+  $query->innerjoin('islandora_item_nominations', 'n', 'c.pid = n.pid');
+  $query->fields('n', array('pid', 'dsid'));
+  $query->fields('c');
+  $results = $query->execute();
+  $options = array();
+  foreach ($results as $result) {
+    $options[$result->pid] = (array) $result;
+    $pid = $result->pid;
+    //$id = $result->id;
+    $options[$pid]['pid-link'] = l($pid, "islandora/object/$pid");
   }
   return $options;
 }
@@ -153,15 +161,16 @@ function get_nominated($namespace = FALSE, $front = FALSE) {
 function update_collection_ds($coll_pid) {
   $coll_ns = explode(':', $coll_pid);
   $coll_ns = $coll_ns[0];
-  $results = db_select('islandora_item_nominations', 'n')
-    ->fields('n')
-    ->condition('pid', $coll_ns.'%', 'LIKE')
-    ->condition('context_id', $coll_pid)
-    ->execute()
-    ->fetchAll();
-  foreach($results as $result) {
-    $object = islandora_object_load($result->pid);
-    $ds = $object[$result->dsid];
+  $results = db_select('islandora_item_nominations_context_collection', 'c');
+  $results->fields('c', array('pid', 'context_type','context_id'));
+  $results->innerjoin('islandora_item_nominations', 'n', 'c.pid = n.pid');
+  $results->fields('n', array('pid', 'dsid'));
+  $results->condition('context_id', $coll_pid);
+  $result = $results->execute();
+  $candidates = $result->fetchAll();
+  foreach($candidates as $nom) {
+    $object = islandora_object_load($nom->pid);
+    $ds = $object[$nom->dsid];
     if (isset($ds)) {
       $coll_obj = islandora_object_load($coll_pid);
       $TN = $coll_obj['TN'];
