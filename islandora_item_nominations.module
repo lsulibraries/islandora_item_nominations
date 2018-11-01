@@ -190,17 +190,20 @@ function islandora_item_nominations_preprocess_islandora_basic_collection_grid(&
 }
 
 function islandora_item_nominations_preprocess_islandora_namespace_homepage(&$variables, $hook) {
-  dpm($hook);
+  //dpm($hook);
   dpm($variables);
-  $key_image_and_meta = islandora_item_nominations_get_key_image('namespace', $variables['nsHome']['namespace']);
+  $key_image_and_meta = islandora_item_nominations_get_key_image('namespace', $variables['nsHome']['namespace'].'-');
+  dpm($key_image_and_meta);
   if(isset($key_image_and_meta)) {
-    $variables['key_image'] = $key_image_and_meta;
+    $variables['nsHome']['key_image'] = $key_image_and_meta;
   }
 }
 
 function where_ami() {
   if (current_path() == '') {
-    // $key = islandora_item_nominations_get_key_image('front');
+     $key = islandora_item_nominations_get_key_image('front');
+     var_dump($key);
+     die();
     //front_bg_block_markup($key);
 
     //at the front page, need a better way to pass in context.
@@ -212,7 +215,7 @@ function where_ami() {
     foreach ($list as $namespace) {
       $ns = str_replace('-*', '', $namespace);
       if (current_path() == $ns) {
-        // $key = islandora_item_nominations_get_key_image('namespace', $ns . '-');
+        $key = islandora_item_nominations_get_key_image('namespace', $ns . '-');
       }
     }
   }
@@ -225,7 +228,7 @@ function where_ami() {
   }
 }
 
-where_ami();
+//where_ami();
 
 
 // function front_bg_block_markup($key_image) {

@@ -209,13 +209,12 @@ function get_image_metadata($object) {
  *  Borrowed from islandora_content_stats
  */
 function nominations_map_cmodels($model) {
-  module_load_include('inc','islandora','includes/utilities');
     if($model == 'children of compound object types'){return $model;}
     module_load_include('inc', 'islandora', 'includes/utilities');
     $not_cmobj = $model != 'fedora-system:ContentModel-3.0';
     $not_fobj = $model != 'fedora-system:FedoraObject-3.0';
     if (($not_fobj) && ($not_cmobj)) {
-        $cmodel_map = islandora_content_stats_islandora_get_content_models();
+        $cmodel_map = islandora_get_content_models();
         if ($model != '' && array_key_exists($model, $cmodel_map)) {
             $label = $cmodel_map[$model];
             $replace = $label['label'];
