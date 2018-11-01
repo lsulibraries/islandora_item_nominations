@@ -157,7 +157,7 @@ function retrieval_helper($keys) {
     $which = $keys[rand(0, $count)];
     $pid = $which['pid'];
     $dsid = $which['dsid'];
-    $path  = "/islandora/object/$pid/datastream/$dsid/view"; // $_SERVER['HTTP_HOST'] . "/islandora/object/$pid/datastream/$dsid/view";
+    $path  = "/islandora/object/$pid/datastream/$dsid/view";
     $return = array(
       'meta' => get_image_metadata(islandora_object_load($pid)),
       'path' => $path,
@@ -190,10 +190,7 @@ function islandora_item_nominations_preprocess_islandora_basic_collection_grid(&
 }
 
 function islandora_item_nominations_preprocess_islandora_namespace_homepage(&$variables, $hook) {
-  //dpm($hook);
-  dpm($variables);
   $key_image_and_meta = islandora_item_nominations_get_key_image('namespace', $variables['nsHome']['namespace'].'-');
-  dpm($key_image_and_meta);
   if(isset($key_image_and_meta)) {
     $variables['nsHome']['key_image'] = $key_image_and_meta;
   }
@@ -202,8 +199,6 @@ function islandora_item_nominations_preprocess_islandora_namespace_homepage(&$va
 function where_ami() {
   if (current_path() == '') {
      $key = islandora_item_nominations_get_key_image('front');
-     var_dump($key);
-     die();
     //front_bg_block_markup($key);
 
     //at the front page, need a better way to pass in context.
@@ -229,42 +224,3 @@ function where_ami() {
 }
 
 //where_ami();
-
-
-// function front_bg_block_markup($key_image) {
-  // $path = $key_image['path'];
-  // $meta_title = $key_image['meta']['title'];
-  // $meta_desc = $key_image['meta']['description'];
-  // $meta_create = $key_image['meta']['creator'];
-  // $meta_cmodel = $key_image['meta']['cmodel'];
-
-  // $markup = "<div class='parralax-mirror'>  <img class='parallax-slider' src='<?php print $path>'></img>  <div class='parallax-meta'>$meta_title</div>  <div class='parallax-meta'>$meta_desc</div>  <div class='parallax-meta'>$meta_create</div>  <div class='parallax-meta'>$meta_cmodel</div>  </div>";
-  // return array('#markup' => $markup);
-// }
-//
-// function islandora_item_nominations_block_info() {
-//   $blocks = array();
-//   $blocks['front_bg_block'] = array(
-//     'info' => t('Islandora Item Nominations Frontpage Background Image Block'),
-//     'status' => TRUE,
-//     'region' => 'content',
-//     'weight' => 1,
-//     'visibility' => BLOCK_VISIBILITY_LISTED,
-//     'pages' => '<front>',
-//   );
-//   // return $blocks;
-// }
-//
-// function islandora_item_nominations_block_view($delta = '') {
-//   switch ($delta) {
-//     case ('front_bg_block') :
-//        $block['weight'] = 1;
-//        // $block['content'] = front_bg_block_markup();
-//        $block['visibility'] = BLOCK_VISIBILITY_LISTED;
-//        $block['pages'] = '<front>';
-//        $block['region'] = 'content';
-//        $block['title'] = '<none>';
-//     break;
-//   }
-//   // return $block;
-// }

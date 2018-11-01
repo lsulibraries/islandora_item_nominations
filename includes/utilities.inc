@@ -191,10 +191,10 @@ function update_collection_ds($coll_pid) {
 function get_image_metadata($object) {
   $mods = simplexml_load_string($object['MODS']->content);
   return array(
-    'title' => property_exists($mods, 'titleInfo') ? (string) $mods->titleInfo->title : t('Title Info Title is missing'),
-    'description' => property_exists($mods, 'abstract') ? (string) $mods->abstract : t('Description missing'),
-    'creator' => property_exists($mods, 'creator') ? $mods->creator : t('Creator missing'),
-    'date_created' => property_exists($mods, 'date_created') ? $mods : t('Date created missing'),
+    'title' => property_exists($mods, 'titleInfo') ? (string) $mods->titleInfo->title : '',
+    'description' => property_exists($mods, 'abstract') ? (string) $mods->abstract : '',
+    'creator' => property_exists($mods, 'creator') ? $mods->creator : '',
+    'date_created' => property_exists($mods, 'date_created') ? $mods : '',
     'cmodel' => nominations_map_cmodels($object->models[0])
   );
 }
