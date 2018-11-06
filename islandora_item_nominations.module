@@ -213,19 +213,6 @@ function islandora_item_nominations_preprocess_islandora_namespace_homepage(&$va
   }
 }
 
-
-/**
- * Implements hook_theme_registry_alter().
- * Overrides islandora_solution_pack_collection's template files.
- */
-function islandora_item_nominations_theme_registry_alter(&$theme_registry) {
-  $path = drupal_get_path('module','islandora_item_nominations');
-  $templates = drupal_find_theme_templates($theme_registry, '.tpl.php', $path);
-  foreach ($templates as $key => $file) {
-    $theme_registry[$key]['theme path'] = $path;
-    $theme_registry[$key] = array_merge($theme_registry[$key], $file);
-  }
-}
 //Determines context by path and calls up key images and meta for given context.
 //with fixed preprocessors and templates this function is no longer needed.
 //try and preprocess front page

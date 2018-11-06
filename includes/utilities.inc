@@ -75,6 +75,7 @@ function nominate($pid, $dsid) {
     ->fields(array('id', 'pid', 'dsid'))
     ->values($values)
     ->execute();
+    dsm("Item $pid was nominated.");
   }
 }
 
@@ -115,7 +116,6 @@ function context_update_context_id($pid, $fields) {
   dsm("Context '$c_type' $state for $pid.");
 }
 
-//old way
 //works great for namespace homepage.
 function get_nominated($namespace = FALSE, $front = FALSE) {
   $query = db_select('islandora_item_nominations', 'n');
