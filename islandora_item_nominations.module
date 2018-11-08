@@ -23,6 +23,9 @@ function islandora_item_nominations_menu() {
 
 /**
  * Implements hook_form_FORM_ID_alter().
+ *
+ *  Hooks the object properies form.
+ *    Checks elegibility of item. Checkbox added if eligible.
  */
 function islandora_item_nominations_form_islandora_object_properties_form_alter(&$form, &$form_state) {
   module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
@@ -39,7 +42,8 @@ function islandora_item_nominations_form_islandora_object_properties_form_alter(
   $dsid = '';
   foreach ($object as $datastream) {
     if (is_eligible($form['pid']['#value'])) {
-      //define elegibility here. Must have either a JPG or TN Datastream and is not a collection.
+      // Elegibility defined here:
+      // Must have either a JPG or TN Datastream and is not a collection.
       if ($datastream->id == 'JPG') {
         $form['nominate'] = $checkbox;
       }
@@ -56,11 +60,12 @@ return $form;
  * Submit handler to be added to islandora_object_properties_form.
  *
  * @return function $fn
- * Returns either the nominate or denominate function.
+ * Returns utitily function to add or remove items from the database.
  */
 function islandora_item_nominations_submit_handler(&$form, &$form_state) {
   if (isset($form['nominate'])) {
     $obj = $form_state['object'];
+    // Prefer JPG over TN.
     $dsid = jpg_over_tn($obj);
     $pid = $form_state['values']['pid'];
     if ($form_state['input']['form_id'] == 'islandora_object_properties_form') {
@@ -73,6 +78,8 @@ function islandora_item_nominations_submit_handler(&$form, &$form_state) {
 
 /**
  * Implements hook_islandora_basic_collection_build_manage_object().
+ *
+ * Allows collection admins to choose candidates for background images.
  */
 function islandora_item_nominations_islandora_basic_collection_build_manage_object($form_state, $object) {
   module_load_include('inc', 'islandora_item_nominations', 'includes/collection.form');
@@ -89,7 +96,8 @@ function islandora_item_nominations_islandora_basic_collection_build_manage_obje
 
 /**
  * Implements hook_form_FORM_ID().
- * Manage namespace homepage
+ *
+ * Allows institution/sub-institution admins to choose candidates for background images.
  */
 function islandora_item_nominations_form_admin_form_alter(&$form, &$form_state) {
   module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
@@ -104,6 +112,7 @@ function islandora_item_nominations_form_admin_form_alter(&$form, &$form_state) 
   $headers = array(
     'pid-link' => array('data' => t('Item pid'), 'field' => 'n.pid'),
     'dsid' => array('data' => t('Datastream'), 'field' => 'n.dsid'),
+    //'indicator' => array('data' => t('Active'), 'field' => 'n.indicator'),
   );
   $form['table'] = array(
     '#type' => 'tableselect',
@@ -130,7 +139,7 @@ function islandora_namespace_context_add(&$form, &$form_state){
     $pid = $form_state['complete form']['table']['#options'][$id]['pid'];
     if(isset($pid)) {
       // Add pid to namespace context database w/ context id of namespace.
-      context_update_context_id($pid, $fields );
+      context_update_context_id($pid, $fields);
     }
   }
 }
@@ -186,15 +195,7 @@ function retrieval_helper($keys) {
  */
 function islandora_item_nominations_preprocess_islandora_basic_collection_grid(&$variables) {
   if (current_path() == 'islandora/object/islandora:root') {
-    //load the key images for each collection TN limited to the current page.
-    // $ns = '';
-    // foreach ($variables['associated_objects_array'] as $associated_obj) {
-    //   $object = $associated_obj['object'];
-    //   $namespace = explode(':', $object->id);
-    //   $ns = $namespace[0];
-    //   $key_image_and_meta = islandora_item_nominations_get_key_image($ns);
-    // }
-    //load a background image and metadata for the root collection
+    // load a background image and metadata for the root collection
     $key_image_and_meta = islandora_item_nominations_get_key_image('front');
   }
   else {
@@ -207,27 +208,30 @@ function islandora_item_nominations_preprocess_islandora_basic_collection_grid(&
  *  Implements template_preprocess_hook().
  */
 function islandora_item_nominations_preprocess_islandora_namespace_homepage(&$variables, $hook) {
-  $key_image_and_meta = islandora_item_nominations_get_key_image('namespace', $variables['nsHome']['namespace'].'-');
-  if(isset($key_image_and_meta)) {
+  $ns = $variables['nsHome']['namespace'].'-';
+  $key = islandora_item_nominations_get_key_image('namespace', $ns);
+  if(isset($key)) {
     $variables['nsHome']['key_image'] = $key_image_and_meta;
   }
 }
 
-//Determines context by path and calls up key images and meta for given context.
-//with fixed preprocessors and templates this function is no longer needed.
-//try and preprocess front page
+/**
+ * Implements template_preprocess_hook().
+ */
 function islandora_item_nominations_preprocess_page(&$variables) {
   if(drupal_is_front_page()){
     $key = islandora_item_nominations_get_key_image('front');
-    $variables['page']['key_image']['meta_link'] = $key;
-    $path = $key['path'];
-    $markup = "<div class='parallax-mirror HelloWill'>
-        <img class='parallax-slider' src='$path'></img>";
+    if (isset($key)) {
+      $variables['page']['key_image']['meta_link'] = $key;
+      $path = $key['path'];
+      $markup = "<div class='parallax-mirror HelloWill'>
+      <img class='parallax-slider' src='$path'></img>";
 
-    foreach($key['meta'] as $meta) {
-      $markup .= "<div class='parallax-meta'>$meta</div>";
+      foreach($key['meta'] as $meta) {
+        $markup .= "<div class='parallax-meta'>$meta</div>";
+      }
+      $markup .= '</div>';
+      $variables['page']['content']['key_image']['#markup'] = $markup;
     }
-    $markup .= '</div>';
-    $variables['page']['content']['key_image']['#markup'] = $markup;
   }
 }

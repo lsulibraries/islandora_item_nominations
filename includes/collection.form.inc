@@ -8,7 +8,8 @@ $form = array();
 $coll_ns = explode(':', $form_state['build_info']['args']['0']->id);
 $coll_ns = $coll_ns[0];
 module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
-$options = get_nominated($coll_ns);
+$candidates = get_nominated($coll_ns);
+//$candidates =  get_nominated_for_context('collection', $coll_ns);
 
 $form['label'] = array(
   '#type' => 'fieldset',
@@ -17,13 +18,14 @@ $form['label'] = array(
 $headers = array(
   'pid-link' => array('data' => t('Item pid'), 'field' => 'n.pid'),
   'dsid' => array('data' => t('Datastream'), 'field' => 'n.dsid'),
+  // 'indicator' => array('data' => t('Active'), 'field' => 'n.indicator'),
 );
 $form['table'] = array(
   '#type' => 'tableselect',
   '#title' => t('Nominate collection items'),
   '#description' => t('Choose items to be featured on the collection background/thumbnail image.'),
   '#header' => $headers,
-  '#options' => $options,
+  '#options' => $candidates,
   '#empty' => t('No items added yet, to nominate visit islandora/object/%object:pid%/manage/properties'),
 );
 $form['submit'] = array(
@@ -44,10 +46,9 @@ function islandora_item_nominations_collection_form_submit(&$form, &$form_state)
       $fields = array(
         'context_type' => 'collection',
         'context_id' => $form_state['build_info']['args']['0']->id,
+        // 'indicator' => 'nominated'
       );
       context_update_context_id($pid, $fields);
-      //consider not updating the coll TN
-      update_collection_ds($fields['context_id']);
     }
   }
 }

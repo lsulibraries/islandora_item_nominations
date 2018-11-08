@@ -31,7 +31,7 @@ function is_eligible($pid) {
  * Object pid
  */
 function is_nominated($pid, $context_id = FALSE, $context_type = FALSE) {
-  $fields = $context_id ? array('pid', 'context_id', 'context_type') : array('pid');
+  $fields = $context_id ? array('pid', 'context_id') : array('pid');
   $table = 'islandora_item_nominations';
   if ($context_type) {
     $table .= "_context_$context_type";
@@ -46,6 +46,17 @@ function is_nominated($pid, $context_id = FALSE, $context_type = FALSE) {
     $nominated = $records->rowCount();
     return $nominated >= 1;
 }
+
+// function is_candidate($pid, $context_id, $context_type) {
+//   $fields = array('pid', 'context_id', 'indicator') ;
+//   $table = "islandora_item_nominations_context_$context_type";
+//   $query = db_select($table, 'n')
+//     ->fields('n', $fields)
+//     ->condition('pid', $pid)
+//     ->condition('context_id', $context_id)
+//     ->execute();
+//     return $query->indicator;
+// }
 
 /**
  *
@@ -75,6 +86,18 @@ function nominate($pid, $dsid) {
     ->fields(array('id', 'pid', 'dsid'))
     ->values($values)
     ->execute();
+    // db_insert('islandora_item_nominations_context_front')
+    // ->fields(array('pid', 'indicator'))
+    // ->values(array($values['pid'],'candidate'))
+    // ->execute();
+    // db_insert('islandora_item_nominations_context_namespace')
+    // ->fields(array('pid', 'indicator'))
+    // ->values(array($values['pid'], 'canditate'))
+    // ->execute();
+    // db_insert('islandora_item_nominations_context_collection')
+    // ->fields(array('pid', 'indicator'))
+    // ->values(array($values['pid'], 'candidate'))
+    // ->execute();
     dsm("Item $pid was nominated.");
   }
 }
@@ -91,21 +114,37 @@ function denominate($pid) {
   db_delete('islandora_item_nominations')
     ->condition('pid', $pid)
     ->execute();
+  // db_delete('islandora_item_nominations_context_front')
+  //   ->condition('pid', $pid)
+  //   ->execute();
+  // db_delete('islandora_item_nominations_context_namespace')
+  //   ->condition('pid', $pid)
+  //   ->execute();
+  // db_delete('islandora_item_nominations_context_collection')
+  //   ->condition('pid', $pid)
+  //   ->execute();
 }
 
-//new for multi table
+/**
+ *  @param string $pid
+ *
+ *  @param array $fields
+ *    database fields for context.
+ */
 function context_update_context_id($pid, $fields) {
   $c_type = $fields['context_type'];
   $c_id = isset($fields['context_id']) ? $fields['context_id'] : FALSE;
-  //trace the condition back...
+  //$indicator = is_candidate($pid, $c_id, $c_type);
   $condition = is_nominated($pid, $c_id, $c_type);
   $db_call = $condition == FALSE ? 'db_insert' : 'db_delete';
   $state = $condition == FALSE ? 'added' : 'deleted';
   $fields = $c_id ? array('pid' => $pid, 'context_id' => $c_id): array('pid' => $pid);
   $update = $db_call("islandora_item_nominations_context_$c_type");
+  // $update = db_update("islandora_item_nominations_context_$c_type");
+  // $update->condition('context_id', $c_id);
   if ($db_call == 'db_delete') {
     $update->condition('pid', $pid);
-    if($c_id){
+    if ($c_id) {
       $update->condition('context_id', $c_id);
     }
   }
@@ -150,37 +189,35 @@ function get_nominated_for_context($context_type, $context_id = FALSE) {
   $options = array();
   foreach ($results as $result) {
     $options[$result->pid] = (array) $result;
-    $pid = $result->pid;
-    //$id = $result->id;
-    $options[$pid]['pid-link'] = l($pid, "islandora/object/$pid");
+    $options[ $result->pid]['pid-link'] = l($pid, "islandora/object/$pid");
   }
   return $options;
 }
 
 //not really a great fn, we don't want to update the TN every time we visit root, or ns homepage
-function update_collection_ds($coll_pid) {
-  $coll_ns = explode(':', $coll_pid);
-  $coll_ns = $coll_ns[0];
-  $results = db_select('islandora_item_nominations_context_collection', 'c');
-  $results->fields('c', array('pid', 'context_type','context_id'));
-  $results->innerjoin('islandora_item_nominations', 'n', 'c.pid = n.pid');
-  $results->fields('n', array('pid', 'dsid'));
-  $results->condition('context_id', $coll_pid);
-  $result = $results->execute();
-  $candidates = $result->fetchAll();
-  foreach($candidates as $nom) {
-    $object = islandora_object_load($nom->pid);
-    $ds = $object[$nom->dsid];
-    if (isset($ds)) {
-      $coll_obj = islandora_object_load($coll_pid);
-      $TN = $coll_obj['TN'];
-      $TN->setContentFromString($ds->content);
-    }
-    else {
-      drupal_set_message('Datastream not valid', 'error');
-    }
-  }
-}
+// function update_collection_ds($coll_pid) {
+//   $coll_ns = explode(':', $coll_pid);
+//   $coll_ns = $coll_ns[0];
+//   $results = db_select('islandora_item_nominations_context_collection', 'c');
+//   $results->fields('c', array('pid', 'context_type','context_id'));
+//   $results->innerjoin('islandora_item_nominations', 'n', 'c.pid = n.pid');
+//   $results->fields('n', array('pid', 'dsid'));
+//   $results->condition('context_id', $coll_pid);
+//   $result = $results->execute();
+//   $candidates = $result->fetchAll();
+//   foreach($candidates as $nom) {
+//     $object = islandora_object_load($nom->pid);
+//     $ds = $object[$nom->dsid];
+//     if (isset($ds)) {
+//       $coll_obj = islandora_object_load($coll_pid);
+//       $TN = $coll_obj['TN'];
+//       $TN->setContentFromString($ds->content);
+//     }
+//     else {
+//       drupal_set_message('Datastream not valid', 'error');
+//     }
+//   }
+// }
 
 /**
  * Loads image metadata.

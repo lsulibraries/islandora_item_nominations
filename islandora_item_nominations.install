@@ -38,6 +38,10 @@ function islandora_item_nominations_schema() {
         'length' => 255,
         'description' => 'islandora/fedora pid',
       ),
+      // 'indicator' => array(
+      //   'type' => 'tiny',
+      //   'description' => 'indicates current status of item nomitated/candidate',
+      // ),
     ),
     'primary key' => array('pid'),
   );
@@ -54,6 +58,10 @@ function islandora_item_nominations_schema() {
         'length' => 255,
         'description' => 'unique id for the context, a collection pid',
       ),
+      // 'indicator' => array(
+      //   'type' => 'tiny',
+      //   'description' => 'indicates current status of item nomitated/candidate',
+      // ),
     ),
     'primary key' => array('pid'),
   );
@@ -70,6 +78,10 @@ function islandora_item_nominations_schema() {
         'length' => 255,
         'description' => 'unique id for the context, a namespace prefix',
       ),
+      // 'indicator' => array(
+      //   'type' => 'tiny',
+      //   'description' => 'indicates current status of item nomitated/candidate',
+      // ),
     ),
     'primary key' => array('pid'),
   );
