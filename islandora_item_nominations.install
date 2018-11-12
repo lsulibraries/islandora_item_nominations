@@ -9,14 +9,9 @@
  */
 
 function islandora_item_nominations_schema() {
-  $schema['islandora_item_nominations'] = array(
-    'description' => 'Table of nominated items, to appear in various contexts.',
+  $schema['islandora_item_nominations_context_front'] = array(
+    'description' => 'nominated items for the front page image pool',
     'fields' => array(
-      'id' => array(
-        'type' => 'serial',
-        'unsigned' => true,
-        'not_null' => true,
-      ),
       'pid' => array(
         'type' => 'varchar',
         'length' => 255,
@@ -27,21 +22,11 @@ function islandora_item_nominations_schema() {
         'length' => 255,
         'description' => 'datastream id(JPEG, TN) used as key image',
       ),
-    ),
-    'primary key' => array('id'),
-  );
-  $schema['islandora_item_nominations_context_front'] = array(
-    'description' => 'nominated items for the front page image pool',
-    'fields' => array(
-      'pid' => array(
-        'type' => 'varchar',
-        'length' => 255,
-        'description' => 'islandora/fedora pid',
+      'indicator' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'description' => 'indicates current status of item nomitated/candidate',
       ),
-      // 'indicator' => array(
-      //   'type' => 'tiny',
-      //   'description' => 'indicates current status of item nomitated/candidate',
-      // ),
     ),
     'primary key' => array('pid'),
   );
@@ -58,10 +43,16 @@ function islandora_item_nominations_schema() {
         'length' => 255,
         'description' => 'unique id for the context, a collection pid',
       ),
-      // 'indicator' => array(
-      //   'type' => 'tiny',
-      //   'description' => 'indicates current status of item nomitated/candidate',
-      // ),
+      'dsid' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'description' => 'datastream id(JPEG, TN) used as key image',
+      ),
+      'indicator' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'description' => 'indicates current status of item nomitated/candidate',
+      ),
     ),
     'primary key' => array('pid'),
   );
@@ -78,10 +69,16 @@ function islandora_item_nominations_schema() {
         'length' => 255,
         'description' => 'unique id for the context, a namespace prefix',
       ),
-      // 'indicator' => array(
-      //   'type' => 'tiny',
-      //   'description' => 'indicates current status of item nomitated/candidate',
-      // ),
+      'dsid' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'description' => 'datastream id(JPEG, TN) used as key image',
+      ),
+      'indicator' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'description' => 'indicates current status of item nomitated/candidate',
+      ),
     ),
     'primary key' => array('pid'),
   );

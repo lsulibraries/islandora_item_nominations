@@ -4,35 +4,32 @@
  * @file Forms for collection level nominated items.
  */
 function islandora_item_nominations_collection_form($form, &$form_state) {
-$form = array();
-$coll_ns = explode(':', $form_state['build_info']['args']['0']->id);
-$coll_ns = $coll_ns[0];
-module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
-$candidates = get_nominated($coll_ns);
-//$candidates =  get_nominated_for_context('collection', $coll_ns);
-
-$form['label'] = array(
-  '#type' => 'fieldset',
-  '#title' => t('Choose items, to give collection specific context'),
-);
-$headers = array(
-  'pid-link' => array('data' => t('Item pid'), 'field' => 'n.pid'),
-  'dsid' => array('data' => t('Datastream'), 'field' => 'n.dsid'),
-  // 'indicator' => array('data' => t('Active'), 'field' => 'n.indicator'),
-);
-$form['table'] = array(
-  '#type' => 'tableselect',
-  '#title' => t('Nominate collection items'),
-  '#description' => t('Choose items to be featured on the collection background/thumbnail image.'),
-  '#header' => $headers,
-  '#options' => $candidates,
-  '#empty' => t('No items added yet, to nominate visit islandora/object/%object:pid%/manage/properties'),
-);
-$form['submit'] = array(
-  '#type' => 'submit',
-  '#value' => t('Nominate for collection'),
-);
-return $form;
+  $form = array();
+  $coll_ns = $form_state['build_info']['args']['0']->id;
+  module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
+  $candidates =  get_nominated_for_context('collection', $coll_ns);
+  $form['label'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Choose items, to give collection specific context'),
+  );
+  $headers = array(
+    'pid-link' => array('data' => t('Item pid'), 'field' => 'n.pid'),
+    'dsid' => array('data' => t('Datastream'), 'field' => 'n.dsid'),
+    'indicator' => array('data' => t('Active'), 'field' => 'n.indicator'),
+  );
+  $form['table'] = array(
+    '#type' => 'tableselect',
+    '#title' => t('Nominate collection items'),
+    '#description' => t('Choose items to be featured on the collection background/thumbnail image.'),
+    '#header' => $headers,
+    '#options' => $candidates,
+    '#empty' => t('No items added yet, to nominate visit islandora/object/%object:pid%/manage/properties'),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Nominate for collection'),
+  );
+  return $form;
 }
 
 /**
