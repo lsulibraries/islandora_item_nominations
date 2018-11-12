@@ -104,7 +104,7 @@ function islandora_item_nominations_form_admin_form_alter(&$form, &$form_state) 
   $params = current_path();
   $namespace = explode('/', $params);
   $ns = $namespace[0] . '-';
-  $options = get_nominated($ns);
+  $options = get_nominated_for_context('namespace', $ns);
   $form['front'] = array(
     '#type' => 'fieldset',
     '#title' => t('Choose items, to give namespace specific context'),
@@ -112,7 +112,7 @@ function islandora_item_nominations_form_admin_form_alter(&$form, &$form_state) 
   $headers = array(
     'pid-link' => array('data' => t('Item pid'), 'field' => 'n.pid'),
     'dsid' => array('data' => t('Datastream'), 'field' => 'n.dsid'),
-    //'indicator' => array('data' => t('Active'), 'field' => 'n.indicator'),
+    'indicator' => array('data' => t('Active'), 'field' => 'n.indicator'),
   );
   $form['table'] = array(
     '#type' => 'tableselect',
@@ -155,7 +155,7 @@ function islandora_namespace_context_add(&$form, &$form_state){
  */
 function islandora_item_nominations_get_key_image($context = FALSE, $namespace = FALSE) {
   module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
-  $keys = get_nominated_for_context($context, $namespace);
+  $keys = get_nominated_for_context($context, $namespace, 'LOAD');
   $essential_info = array();
   foreach ($keys as $k => $v) {
     $essential_info[] = $v;
@@ -211,7 +211,7 @@ function islandora_item_nominations_preprocess_islandora_namespace_homepage(&$va
   $ns = $variables['nsHome']['namespace'].'-';
   $key = islandora_item_nominations_get_key_image('namespace', $ns);
   if(isset($key)) {
-    $variables['nsHome']['key_image'] = $key_image_and_meta;
+    $variables['nsHome']['key_image'] = $key;
   }
 }
 

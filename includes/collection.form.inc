@@ -43,7 +43,6 @@ function islandora_item_nominations_collection_form_submit(&$form, &$form_state)
       $fields = array(
         'context_type' => 'collection',
         'context_id' => $form_state['build_info']['args']['0']->id,
-        // 'indicator' => 'nominated'
       );
       context_update_context_id($pid, $fields);
     }

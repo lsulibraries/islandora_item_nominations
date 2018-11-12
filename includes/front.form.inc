@@ -18,7 +18,7 @@ function islandora_item_nominations_front_form($form, &$form_state) {
   $headers = array(
     'pid-link' => array('data' => t('Item pid'), 'field' => 'n.pid'),
     'dsid' => array('data' => t('Datastream'), 'field' => 'n.dsid'),
-    //'indicator' => array('data' => t('Active'), 'field' => 'n.indicator'),
+    'indicator' => array('data' => t('Active'), 'field' => 'n.indicator'),
   );
   $form['table'] = array(
     '#type' => 'tableselect',
