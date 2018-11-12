@@ -10,7 +10,7 @@
 function islandora_item_nominations_front_form($form, &$form_state) {
   module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
   $form = array();
-  $options = get_nominated();
+  $options = get_nominated_for_context('front');
   $form['front'] = array(
     '#type' => 'fieldset',
     '#title' => t('Add or remove nominated items to front-page background image pool'),

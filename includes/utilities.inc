@@ -46,13 +46,21 @@ function is_nominated($pid, $context_id = FALSE) {
 }
 
 function is_candidate($pid, $context_id, $context_type) {
-  $fields = array('pid', 'context_id', 'indicator') ;
+  $fields = $context_type == 'front' ? array('pid', 'indicator') : array('pid', 'context_id', 'indicator');
   $table = "islandora_item_nominations_context_$context_type";
-  $query = db_select($table, 'n')
-    ->fields('n', $fields)
-    ->condition('pid', $pid)
-    ->condition('context_id', $context_id)
-    ->execute();
+  if ($context_type == 'front') {
+    $query = db_select($table, 'n')
+      ->fields('n', $fields)
+      ->condition('pid', $pid)
+      ->execute();
+  }
+  else {
+    $query = db_select($table, 'n')
+      ->fields('n', $fields)
+      ->condition('pid', $pid)
+      ->condition('context_id', $context_id)
+      ->execute();
+  }
   $results = $query->fetchAll();
   return $results[0]->indicator;
 }
@@ -158,7 +166,7 @@ function get_nominated_for_context($context_type, $context_id = FALSE, $load = F
     $query->condition('pid', $context_id . '%', 'LIKE');
 
   }
-  else {
+  if ($context_type == 'collection') {
     $query->condition('context_id', $context_id);
   }
   $results = $query->execute();
