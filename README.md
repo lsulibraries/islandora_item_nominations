@@ -54,12 +54,12 @@ islandora_item_nominations_context_collection
 ### API
 The following functions and return values will be needed:
 
-* `includes/utilities.inc get_nominated_for_context($context_type, $context_id = FALSE, $load = FALSE)`
-  * `$context_type` _string_ which context, corresponds to db table.
-  * `$context_id` _string_ which pid or namespace the current page is in.
-  * `$load` _string_ if string: only return actively nomitated items for with idicator of 1 to be displayed.
-  * `return $options`
-  * `$options` _array_ set of db records `WHERE context_id = current_context`
+* `includes/utilites is_eligible check if item meets requirements`
+* `includes/utilites is_nominated check if item is already nominated.`
+
+* `includes/utilities is_candidate check if item is a candidate for nomination, or if it is already nominated for a context.`
+* 
+
 * `includes/utilities.inc nominate($pid, $context)`
   * should be called when a new item is chosen as a potential nominee for any context.
   * `$pid` _string_ dora/fedora PID
@@ -68,13 +68,24 @@ The following functions and return values will be needed:
   * should be called when a new item is romoved as a potential nominee for any context.
   * `$pid` _string_ dora/fedora PID
   * db_delete into all 3 tables* 
+  
 * `include/utilities.inc context_update_context_id($pid, $fields)`
   * update the db record for a pid, setting a value for a context
   * `$pid` _string_ dora/fedora PID
   * `$fields` _array_ Database fields for context_type table.
   * db_update indicator to the opposite of it's current setting. (Activate a candidate item)
-* `get_image_metadata($pid)`
+
+* `includes/utilities.inc get_nominated_for_context($context_type, $context_id = FALSE, $load = FALSE)`
+  * `$context_type` _string_ which context, corresponds to db table.
+  * `$context_id` _string_ which pid or namespace the current page is in.
+  * `$load` _string_ if string: only return actively nomitated items for with idicator of 1 to be displayed.
+  * `return $options`
+  * `$options` _array_ set of db records `WHERE context_id = current_context`
+
+* `includes/utilities.inc get_image_metadata($pid)`
   * return [$title, $description, $creator, $date_created, $cmodel]
+
+* `.module islandora_item_nominations_get_key_image($context)`
 
 ### Forms
 * item-level nominate checkbox (hook_form_islandora_object_properties_form_alter)
