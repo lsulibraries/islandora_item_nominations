@@ -87,23 +87,29 @@ function nominate($pid, $dsid) {
       'indicator' => 0,
     );
     if ($dsid != 'TN') {
-    db_insert('islandora_item_nominations_context_front')
-      ->fields(array('pid', 'dsid', 'indicator'))
-      ->values(array($values))
-      ->execute();
+      // Add to front context pool.
+      db_insert('islandora_item_nominations_context_front')
+        ->fields(array('pid', 'dsid', 'indicator'))
+        ->values(array($values))
+        ->execute();
     }
+
     $ns_str = explode('-', $pid);
     array_pop($ns_str);
     $ns = implode($ns_str);
     $values['context_id'] = $ns.'-';
+
+    // Add to namespace context pool.
     db_insert('islandora_item_nominations_context_namespace')
       ->fields(array('pid', 'dsid', 'indicator', 'context_id'))
       ->values(array($values))
       ->execute();
+
     $coll = explode(':', $pid);
     $coll = $coll[0]. ':collection';
     $values['context_id'] = $coll;
-
+    
+    // Add to collection context pool.
     db_insert('islandora_item_nominations_context_collection')
       ->fields(array('pid', 'dsid', 'indicator', 'context_id'))
       ->values(array($values))
@@ -121,17 +127,12 @@ function nominate($pid, $dsid) {
  */
 function denominate($pid) {
   //adapt to remove from multiple tables
-  db_delete('islandora_item_nominations_context_front')
+  foreach ($context as $ctx) {
+    db_delete("islandora_item_nominations_context_$ctx")
     ->condition('pid', $pid)
-    ->execute();
-  db_delete('islandora_item_nominations_context_namespace')
-    ->condition('pid', $pid)
-    ->execute();
-  db_delete('islandora_item_nominations_context_collection')
-    ->condition('pid', $pid)
-    ->execute();
-        dsm("Item $pid is no longer nominated.");
-
+    ->execute();  
+  }
+  dsm("Item $pid is no longer nominated.");
 }
 
 /**
