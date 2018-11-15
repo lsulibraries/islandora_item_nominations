@@ -128,6 +128,7 @@ function nominate($pid, $dsid) {
  */
 function denominate($pid) {
   //adapt to remove from multiple tables
+  $context = array('namespace', 'collection', 'front');
   foreach ($context as $ctx) {
     db_delete("islandora_item_nominations_context_$ctx")
     ->condition('pid', $pid)
