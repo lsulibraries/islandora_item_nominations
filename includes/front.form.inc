@@ -30,7 +30,7 @@ function islandora_item_nominations_front_form($form, &$form_state) {
   );
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Add to pool'),
+    '#value' => t('Update active status'),
   );
   return $form;
 }

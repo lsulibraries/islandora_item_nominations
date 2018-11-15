@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file
+ * @file 
  *   Utility functions, check db, write or remove to database, and submit handler.
  */
 
@@ -9,6 +9,7 @@ function is_eligible($pid) {
   //check ip embargo
   $ograbme = db_query("SELECT * from islandora_ip_embargo_embargoes where pid = :pid", array(':pid' => $pid));
   $ip_embargoed = $ograbme->rowCount() > 0;
+  module_exists('islandora_collection_toggle_publish_collections');
   $notlisted = db_query("SELECT * FROM islandora_collection_toggle_publish_collections where pid = :pid", array(':pid' => $pid));
   $published = $notlisted->rowCount() == 0;
   if ($ip_embargoed) {
@@ -139,18 +140,24 @@ function denominate($pid) {
  *  @param string $pid
  *
  *  @param array $fields
- *    database fields for context.
+ *    Database fields for context.
  */
 function context_update_context_id($pid, $fields) {
   $c_type = $fields['context_type'];
   $c_id = isset($fields['context_id']) ? $fields['context_id'] : FALSE;
+  // Get the indicator before setting every entry to indicator => 0.
   $indicator = is_candidate($pid, $c_id, $c_type);
+  if ($c_type == 'namespace' || $c_type == 'collection') {
+    $update =  db_update("islandora_item_nominations_context_$c_type");
+    $update->fields(array('indicator' => 0));
+    $update->execute();
+  }
   $indicator = $indicator == '0' ? 1 : 0;
-
   $state = $indicator == TRUE ? 'added' : 'deleted';
   $fields = $c_id ? array('pid' => $pid, 'context_id' => $c_id) : array('pid' => $pid);
   $update = db_update("islandora_item_nominations_context_$c_type");
   $update->fields(array('indicator' => $indicator));
+  $update->condition('pid', $pid);
   $update->execute();
   dsm("Context '$c_type' $state for $pid.");
 }
