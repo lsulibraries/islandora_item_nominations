@@ -6,18 +6,17 @@
  */
 
 function is_eligible($pid) {
+  $published = '';
   //check ip embargo
   $ograbme = db_query("SELECT * from islandora_ip_embargo_embargoes where pid = :pid", array(':pid' => $pid));
   $ip_embargoed = $ograbme->rowCount() > 0;
-  if (module_exists('islandora_collection_toggle_publish_collections')){
-    module_load_include('module', 'islandora_collection_toggle_publish_collections');
-    $notlisted = grant_access($pid);
+  if (module_exists('islandora_collection_toggle_publish')){
+    module_load_include('module', 'islandora_collection_toggle_publish');
+    $published = grant_access(islandora_object_load($pid));
   }
   else {
     return TRUE;
   }
-
-  $published = $notlisted->rowCount() == 0;
   if ($ip_embargoed) {
     return FALSE;
   }
