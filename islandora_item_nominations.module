@@ -162,6 +162,12 @@ function islandora_item_nominations_table_form($form, &$form_state) {
         '#type' => 'checkbox',
         '#default_value' => $info['indicator'],
       ),
+      'pid' => array(
+        '#markup' => $info['pid-link'],
+        ),
+       'dsid' => array(
+          '#markup' => '<div>' . $info['dsid'] . '</div>',
+        ),
     );
   }
 
