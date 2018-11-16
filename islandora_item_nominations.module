@@ -187,8 +187,6 @@ function islandora_namespace_context_add(&$form, &$form_state){
         'context_type' => 'namespace',
         'context_id' => $form['ns']['#value'] . '-'
       );
-      //$pid = $form_state['complete form']['table']['table']['rows'][$id]['#parents'][3];
-      dpm($pid);
       if(isset($pid)) {
         // Add pid to namespace context database w/ context id of namespace.
         context_update_context_id($pid, $fields);
