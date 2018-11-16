@@ -101,30 +101,41 @@ function islandora_item_nominations_islandora_basic_collection_build_manage_obje
  */
 function islandora_item_nominations_form_admin_form_alter(&$form, &$form_state) {
   module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
-  $params = current_path();
-  $namespace = explode('/', $params);
-  $ns = $namespace[0] . '-';
-  $options = get_nominated_for_context('namespace', $ns);
   $form['front'] = array(
     '#type' => 'fieldset',
     '#title' => t("Choose one item as a key image for this institution."),
   );
-  $headers = array(
-    'pid-link' => array('data' => t('Item pid'), 'field' => 'n.pid'),
-    'dsid' => array('data' => t('Datastream'), 'field' => 'n.dsid'),
-    'indicator' => array('data' => t('Active'), 'field' => 'n.indicator'),
-  );
-  $form['table'] = array(
-    '#type' => 'tableselect',
-    '#title' => t('Nominated item pool'),
-    '#description' => t("Choose one item to be a featured item for the institution."),
-    '#header' => $headers,
-    '#options' => $options,
-    '#empty' => t("No items added yet, to nominate an object go to the object's manage->properties page"),
-    '#js_select' => FALSE,
+  // dpm($rows);
+  // $default = '';
+  // foreach($options as $key => $opt) { 
+  //   if($opt['indicator'] == '1'){
+  //   $default = $key;
+  // }}
+  $form['table'] = islandora_item_nominations_table_form($form, $form_state);
+  // $headers = array(
+  //   'indicator' => array('data' => t('Active'), 'field' => 'n.indicator'),
+  //   'pid-link' => array('data' => t('Item pid'), 'field' => 'n.pid'),
+  //   'dsid' => array('data' => t('Datastream'), 'field' => 'n.dsid'),
+  // );
+  // //new table
+  // $form['table'] = array(
+  //   '#tree' => TRUE,
+  //   '#header' => $headers,
+  //   '#theme' => 'islandora_item_nominations_table',
+  //   'rows' => $rows
+  // );
 
-  );
-    $path = drupal_get_path('module', 'islandora_item_nominations') . '/js/islandora_item_nominations.js';
+  //old table
+  // $form['table'] = array(
+  //   '#type' => 'tableselect',
+  //   '#title' => t('Nominated item pool'),
+  //   '#description' => t("Choose one item to be a featured item for the institution."),
+  //   '#header' => $headers,
+  //   '#options' => $options,
+  //   '#empty' => t("No items added yet, to nominate an object go to the object's manage->properties page"),
+  //   '#js_select' => FALSE,
+  // );
+  $path = drupal_get_path('module', 'islandora_item_nominations') . '/js/islandora_item_nominations.js';
   $form['#attached']['js'][] = array(
     'data' => $path,
     'type' => 'file',
@@ -134,18 +145,50 @@ function islandora_item_nominations_form_admin_form_alter(&$form, &$form_state) 
   return $form;
 }
 
+function islandora_item_nominations_table_form($form, &$form_state) {
+  $params = current_path();
+  $namespace = explode('/', $params);
+  $ns = $namespace[0] . '-';
+  $headers = array(
+    'indicator' => array('data' => t('Active'), 'field' => 'n.indicator'),
+    'pid-link' => array('data' => t('Item pid'), 'field' => 'n.pid'),
+    'dsid' => array('data' => t('Datastream'), 'field' => 'n.dsid'),
+  );
+  $nominated = get_nominated_for_context('namespace', $ns);
+  $rows = array();
+  foreach ($nominated as $pid => $info) {
+    $rows[$pid] = array(
+      'selected' => array(
+        '#type' => 'checkbox',
+        '#default_value' => $info['indicator'],
+      ),
+    );
+  }
+
+  //new table
+  return array(
+    'table' => array(
+      '#tree' => TRUE,
+      '#header' => $headers,
+      '#theme' => 'islandora_item_nominations_table',
+      'rows' => $rows
+    ),
+  );
+}
+
 /**
  * Submit function for namespace homepage item nomination.
  */
 function islandora_namespace_context_add(&$form, &$form_state){
   module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
-  foreach ($form_state['input']['table'] as $id) {
-    if($id){
+  foreach ($form_state['input']['table']['rows'] as $pid => $stuff) {
+    if($stuff['selected'] == 1){
       $fields = array(
         'context_type' => 'namespace',
         'context_id' => $form['ns']['#value'] . '-'
       );
-      $pid = $form_state['complete form']['table']['#options'][$id]['pid'];
+      //$pid = $form_state['complete form']['table']['table']['rows'][$id]['#parents'][3];
+      dpm($pid);
       if(isset($pid)) {
         // Add pid to namespace context database w/ context id of namespace.
         context_update_context_id($pid, $fields);
