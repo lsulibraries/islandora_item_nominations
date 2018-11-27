@@ -30,7 +30,6 @@ function islandora_item_nominations_collection_form($form, &$form_state) {
   );
   $path = drupal_get_path('module', 'islandora_item_nominations') . '/js/islandora_item_nominations.js';
   if ($form_state['build_info']['form_id'] == 'islandora_item_nominations_collection_form') {
-    dpm($form_state);
     $form['#attached']['js'][] = array(
       'data' => $path,
       'type' => 'file',

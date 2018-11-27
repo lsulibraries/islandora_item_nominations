@@ -13,7 +13,7 @@
 function theme_islandora_item_nominations_table(array $variables) {
   // Manually add the table select javascript as we are using a custom table.
   drupal_add_js('misc/tableselect.js');
-  dpm($variables);
+  //dpm($variables);
   $table = $variables['table'];
   $row_elements = $table['rows'];
   $rows = array();
