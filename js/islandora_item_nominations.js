@@ -6,9 +6,9 @@
 
 (function ($) {
   console.log('ok');
-  $('.form-checkbox').change(function () {
+  $('.form-checkbox.nominate').change(function () {
     if (this.click) {
-      $('.form-checkbox').not(this).prop('checked', false);
+      $('.form-checkbox.nominate').not(this).prop('checked', false);
     }
   });
 

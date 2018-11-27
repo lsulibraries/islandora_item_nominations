@@ -10,7 +10,7 @@ function islandora_item_nominations_collection_form($form, &$form_state) {
   $candidates =  get_nominated_for_context('collection', $coll_ns);
   $form['label'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Choose one item as a key image for this institution.'),
+    '#title' => t('Choose one item as a key image for this collection.'),
   );
   $headers = array(
     'pid-link' => array('data' => t('Item pid'), 'field' => 'n.pid'),
@@ -23,16 +23,20 @@ function islandora_item_nominations_collection_form($form, &$form_state) {
     '#description' => t('Choose one item to be a featured item for the collection.'),
     '#header' => $headers,
     '#options' => $candidates,
+    '#attributes' => array('class' => array('nominate')),
     '#empty' => t("No items added yet, to nominat manage an object's properties (it must have a TN or JPG datastream) "),
     '#js_select' => FALSE,
 
   );
   $path = drupal_get_path('module', 'islandora_item_nominations') . '/js/islandora_item_nominations.js';
-  $form['#attached']['js'][] = array(
-    'data' => $path,
-    'type' => 'file',
-    'scope' => 'footer',
-  );
+  if ($form_state['build_info']['form_id'] == 'islandora_item_nominations_collection_form') {
+    dpm($form_state);
+    $form['#attached']['js'][] = array(
+      'data' => $path,
+      'type' => 'file',
+      'scope' => 'footer',
+    );
+  }
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Nominate for collection'),

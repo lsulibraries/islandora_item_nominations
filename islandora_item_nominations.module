@@ -136,11 +136,14 @@ function islandora_item_nominations_form_admin_form_alter(&$form, &$form_state) 
   //   '#js_select' => FALSE,
   // );
   $path = drupal_get_path('module', 'islandora_item_nominations') . '/js/islandora_item_nominations.js';
-  $form['#attached']['js'][] = array(
-    'data' => $path,
-    'type' => 'file',
-    'scope' => 'footer',
-  );
+  if ($form['form_id']['#value'] == 'admin_form') {
+
+    $form['#attached']['js'][] = array(
+      'data' => $path,
+      'type' => 'file',
+      'scope' => 'footer',
+    );
+  }
   array_unshift($form['#submit'], 'islandora_namespace_context_add');
   return $form;
 }
@@ -161,6 +164,7 @@ function islandora_item_nominations_table_form($form, &$form_state) {
       'selected' => array(
         '#type' => 'checkbox',
         '#default_value' => $info['indicator'],
+        '#attributes' => array('class' => array('nominate')),
       ),
       'pid' => array(
         '#markup' => $info['pid-link'],
