@@ -191,15 +191,17 @@ function islandora_item_nominations_table_form($form, &$form_state) {
  */
 function islandora_namespace_context_add(&$form, &$form_state){
   module_load_include('inc', 'islandora_item_nominations', 'includes/utilities');
-  foreach ($form_state['input']['table']['rows'] as $pid => $stuff) {
-    if($stuff['selected'] == 1){
-      $fields = array(
-        'context_type' => 'namespace',
-        'context_id' => $form['ns']['#value'] . '-'
-      );
-      if(isset($pid)) {
-        // Add pid to namespace context database w/ context id of namespace.
-        context_update_context_id($pid, $fields);
+  if (isset($form_state['input']['table'])) {
+    foreach ($form_state['input']['table']['rows'] as $pid => $stuff) {
+      if($stuff['selected'] == 1){
+        $fields = array(
+          'context_type' => 'namespace',
+          'context_id' => $form['ns']['#value'] . '-'
+        );
+        if(isset($pid)) {
+          // Add pid to namespace context database w/ context id of namespace.
+          context_update_context_id($pid, $fields);
+        }
       }
     }
   }
